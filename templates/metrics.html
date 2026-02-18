@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Metrics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="center-box">
+    <h2>Training Results</h2>
+
+    <table border="1" width="100%" cellpadding="8">
+        <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1 Score</th>
+            <th>Time (s)</th>
+        </tr>
+
+        {% for row in metrics %}
+        <tr>
+            <td>{{ row.model }}</td>
+            <td>{{ row.accuracy }}</td>
+            <td>{{ row.precision }}</td>
+            <td>{{ row.recall }}</td>
+            <td>{{ row.f1 }}</td>
+            <td>{{ row.time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/dashboard" class="btn-primary">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

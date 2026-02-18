@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malware Defense | AI Android Security</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f2f5f9;
+            color: #0b1e33;
+            line-height: 1.5;
+        }
+
+        .homepage {
+            max-width: 1500px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 20px 40px rgba(0,20,50,0.08);
+        }
+
+        /* navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 3rem;
+            background: #ffffffdd;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e9f2;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0a2540;
+        }
+        .logo span {
+            color: #3b82f6;
+            font-weight: 300;
+        }
+        .nav-menu a {
+            margin-left: 2.2rem;
+            text-decoration: none;
+            color: #1e2f44;
+            font-weight: 500;
+        }
+        .nav-menu a:hover {
+            color: #2563eb;
+        }
+        .nav-menu .nav-cta {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.5rem 1.8rem;
+            border-radius: 40px;
+        }
+
+        /* HERO - bigger */
+        .hero {
+            background: radial-gradient(ellipse at 80% 30%, #153d6f, #082032);
+            color: white;
+            padding: 6rem 3rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .hero-left {
+            flex: 1 1 400px;
+        }
+        .hero-left h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .hero-left .orange {
+            color: #fbbf24;
+            text-shadow: 0 2px 10px rgba(251,191,36,0.3);
+        }
+        .hero-left p {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1.4rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255,215,0,0.4);
+            font-weight: 500;
+        }
+        .hero-right {
+            background: rgba(0,30,60,0.4);
+            border-radius: 50px 20px 50px 20px;
+            padding: 2.5rem 2rem;
+            backdrop-filter: blur(12px);
+            border: 1px solid #fbbf2440;
+            min-width: 280px;
+        }
+        .hero-right i {
+            font-size: 4rem;
+            margin: 0 0.5rem;
+            color: #fbbf24;
+        }
+
+        /* live metrics ticker */
+        .live-metrics {
+            background: #0b1b2f;
+            color: white;
+            padding: 1.2rem 3rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+            font-weight: 500;
+            border-bottom: 1px solid #20354d;
+        }
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .metric i {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+        .metric .value {
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        /* tech scroll */
+        .tech-scroll {
+            background: #14273e;
+            padding: 1rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .scroll-track {
+            display: inline-block;
+            animation: scroll 36s linear infinite;
+        }
+        .scroll-track:hover {
+            animation-play-state: paused;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            background: #203a58;
+            color: #d2e0f0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            margin: 0 0.8rem;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        .pill i {
+            color: #fbbf24;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* section container */
+        .section {
+            padding: 4rem 3rem 2rem 3rem;
+        }
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #0b1e33;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .title i {
+            color: #2563eb;
+            font-size: 2.2rem;
+        }
+        .subhead {
+            color: #475569;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin-bottom: 2.5rem;
+        }
+
+        /* feature grid (extended) */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+        .feat-card {
+            background: #f9fcff;
+            border: 1px solid #e4ecf5;
+            border-radius: 30px;
+            padding: 2rem 1.5rem;
+            transition: 0.2s;
+        }
+        .feat-card:hover {
+            background: white;
+            box-shadow: 0 20px 30px -10px #1e3a8a30;
+            border-color: #b1d0ff;
+        }
+        .feat-card i {
+            font-size: 2.2rem;
+            color: #2563eb;
+            margin-bottom: 1.2rem;
+        }
+        .feat-card h4 {
+            font-size: 1.4rem;
+            margin-bottom: 0.7rem;
+        }
+        .feat-card p {
+            color: #334155;
+        }
+
+        /* ML model area expanded */
+        .ml-deep {
+            background: linear-gradient(145deg, #eef4ff, #ffffff);
+            border-radius: 60px;
+            padding: 3rem;
+            margin: 2rem 0;
+        }
+        .model-showcase {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3rem;
+            align-items: center;
+        }
+        .model-metrics {
+            flex: 2;
+            min-width: 280px;
+        }
+        .model-gauge {
+            flex: 1;
+            background: #ffffffd0;
+            border-radius: 40px;
+            padding: 2rem;
+            text-align: center;
+        }
+        .algos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .algo-tag {
+            background: white;
+            border-radius: 60px;
+            padding: 0.6rem 1.6rem;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+            border: 1px solid #cdddec;
+        }
+        .conf-matrix {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* timeline process */
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 4rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .step {
+            flex: 1 1 160px;
+            text-align: center;
+            position: relative;
+        }
+        .step-circle {
+            background: #1e3a5f;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.6rem;
+            font-weight: 700;
+            border: 4px solid #fbbf24;
+        }
+        .step p {
+            font-weight: 500;
+        }
+
+        /* split dataset/apk with extra details */
+        .workflow-extended {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .workflow-card {
+            background: #f0f6fe;
+            border-radius: 40px;
+            padding: 2rem 2.5rem;
+            border: 1px solid #cbddea;
+        }
+        .workflow-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+        .feature-list-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 2rem;
+            margin: 2rem 0;
+        }
+
+        /* FAQ section */
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .faq-item {
+            background: #f6faff;
+            border-radius: 30px;
+            padding: 1.5rem;
+            border-left: 6px solid #2563eb;
+        }
+        .faq-question {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* team section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .member {
+            text-align: center;
+        }
+        .member-avatar {
+            background: #0b2b4f;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fbbf24;
+            font-size: 3rem;
+            border: 3px solid #fbbf24;
+        }
+
+        /* stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #0b1f33;
+            color: white;
+            border-radius: 80px;
+            padding: 2rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fbbf24;
+        }
+
+        /* footer more detailed */
+        .footer {
+            background: #0a1727;
+            color: #b0c2d9;
+            padding: 3rem 3rem 2rem;
+            margin-top: 3rem;
+        }
+        .footer-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr 1.2fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .footer-bottom {
+            border-top: 1px solid #1d3147;
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1100px) {
+            .features-grid { grid-template-columns: repeat(2,1fr); }
+            .team-grid { grid-template-columns: repeat(2,1fr); }
+            .footer-main { grid-template-columns: repeat(2,1fr); }
+            .faq-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 700px) {
+            .features-grid { grid-template-columns: 1fr; }
+            .workflow-extended { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="homepage">
+
+    <!-- Sticky nav -->
+    <div class="navbar">
+        <div class="logo">Shield<span>Droid</span></div>
+        <div class="nav-menu">
+            <a href="#">Home</a>
+            <a href="#">Dashboard</a>
+            <a href="#">Scan</a>
+            <a href="#">Models</a>
+            <a href="#">Docs</a>
+            <a href="#" class="nav-cta"><i class="fas fa-lock"></i> Console</a>
+        </div>
+    </div>
+
+    <!-- HERO (extra large) -->
+    <section class="hero">
+        <div class="hero-left">
+            <h1>Stop malware before <span class="orange">it spreads</span><br>with permission‑based AI</h1>
+            <p>Deep ensemble models trained on 2.3M APK permission vectors. Real‑time analysis, explainable scores, and continuous learning.</p>
+            <div class="hero-badges">
+                <span class="hero-badge"><i class="fas fa-robot"></i> 99.2% precision</span>
+                <span class="hero-badge"><i class="fas fa-bolt"></i> 0.8s / scan</span>
+                <span class="hero-badge"><i class="fas fa-shield"></i> 50+ families</span>
+            </div>
+        </div>
+        <div class="hero-right">
+            <i class="fas fa-shield-halved"></i>
+            <i class="fas fa-skull"></i>
+            <i class="fas fa-microchip"></i>
+            <i class="fas fa-chart-line"></i>
+            <div style="font-size: 1.6rem; margin-top: 1rem;">permission → threat</div>
+        </div>
+    </section>
+
+    <!-- Live metrics ticker (new) -->
+    <div class="live-metrics">
+        <div class="metric"><i class="fas fa-database"></i> <span class="value">2.4M</span> samples processed</div>
+        <div class="metric"><i class="fas fa-chart-line"></i> <span class="value">98.7%</span> avg. accuracy</div>
+        <div class="metric"><i class="fas fa-clock"></i> <span class="value">0.03s</span> inference</div>
+        <div class="metric"><i class="fas fa-android"></i> <span class="value">18.2k</span> APKs today</div>
+        <div class="metric"><i class="fas fa-flag"></i> <span class="value">237</span> threats blocked</div>
+    </div>
+
+    <!-- Tech stack infinite scroller (longer) -->
+    <div class="tech-scroll">
+        <div class="scroll-track">
+            <!-- first block -->
+            <span class="pill"><i class="fab fa-python"></i> TensorFlow 2.13</span>
+            <span class="pill"><i class="fas fa-seedling"></i> Scikit-learn 1.3</span>
+            <span class="pill"><i class="fas fa-brain"></i> PyTorch</span>
+            <span class="pill"><i class="fas fa-cubes"></i> XGBoost</span>
+            <span class="pill"><i class="fab fa-android"></i> AndroGuard</span>
+            <span class="pill"><i class="fas fa-flask"></i> Flask + Gunicorn</span>
+            <span class="pill"><i class="fas fa-chart-pie"></i> Pandas/NumPy</span>
+            <span class="pill"><i class="fas fa-eye"></i> SHAP/LIME</span>
+            <!-- duplicate for seamless loop -->
+            <span class="pill"><i class="fab fa-python"></i> TensorFlow 2.13</span>
+            <span class="pill"><i class="fas fa-seedling"></i> Scikit-learn 1.3</span>
+            <span class="pill"><i class="fas fa-brain"></i> PyTorch</span>
+            <span class="pill"><i class="fas fa-cubes"></i> XGBoost</span>
+            <span class="pill"><i class="fab fa-android"></i> AndroGuard</span>
+            <span class="pill"><i class="fas fa-flask"></i> Flask + Gunicorn</span>
+            <span class="pill"><i class="fas fa-chart-pie"></i> Pandas/NumPy</span>
+            <span class="pill"><i class="fas fa-eye"></i> SHAP/LIME</span>
+        </div>
+    </div>
+
+    <!-- SECTION: project overview extended (features grid) -->
+    <div class="section">
+        <div class="title"><i class="fas fa-cubes"></i> Platform capabilities</div>
+        <div class="subhead">Everything you need to assess APK risk and train custom detectors.</div>
+        <div class="features-grid">
+            <div class="feat-card"><i class="fas fa-table"></i><h4>Dataset versioning</h4><p>Automated commit & diff for permission CSVs. Rollback anytime.</p></div>
+            <div class="feat-card"><i class="fas fa-file-signature"></i><h4>Multi-family classification</h4><p>Banking, adware, ransomware, spyware — 14 categories.</p></div>
+            <div class="feat-card"><i class="fas fa-chart-gantt"></i><h4>Feature importance</h4><p>Which permissions trigger risk? Sends real-time alerts.</p></div>
+            <div class="feat-card"><i class="fas fa-code-branch"></i><h4>Ensemble stacking</h4><p>Combine RF, XGBoost, and MLP for maximum AUC.</p></div>
+            <div class="feat-card"><i class="fas fa-cloud-upload-alt"></i><h4>Batch APK scan</h4><p>Upload 100+ APKs, get CSV report with risk scores.</p></div>
+            <div class="feat-card"><i class="fas fa-retweet"></i><h4>Continuous learning</h4><p>Active learning loop: human feedback improves model.</p></div>
+            <div class="feat-card"><i class="fas fa-robot"></i><h4>Auto-retrain</h4><p>Scheduled pipelines when new data arrives.</p></div>
+            <div class="feat-card"><i class="fas fa-shield-halved"></i><h4>Evasion detection</h4><p>Obfuscation? Our GAN-based adversary spotter.</p></div>
+        </div>
+    </div>
+
+    <!-- TIMELINE: how it works (new) -->
+    <div class="section" style="padding-top:0">
+        <div class="title"><i class="fas fa-clock"></i> From upload to verdict</div>
+        <div class="timeline">
+            <div class="step"><div class="step-circle">1</div><p>APK upload / dataset</p><small>decompile & permission extraction</small></div>
+            <div class="step"><div class="step-circle">2</div><p>Feature vector</p><small>125 dim + embedding</small></div>
+            <div class="step"><div class="step-circle">3</div><p>Ensemble inference</p><small>5 models vote</small></div>
+            <div class="step"><div class="step-circle">4</div><p>Explainability</p><small>SHAP, LIME</small></div>
+            <div class="step"><div class="step-circle">5</div><p>Report & alert</p><small>PDF/JSON/API</small></div>
+        </div>
+    </div>
+
+    <!-- ML MODEL deep dive section (with extra metrics) -->
+    <div class="section">
+        <div class="ml-deep">
+            <div class="title"><i class="fas fa-microchip"></i> Production-grade models</div>
+            <div class="model-showcase">
+                <div class="model-metrics">
+                    <div class="algos">
+                        <span class="algo-tag"><i class="fas fa-tree"></i> RandomForest 0.97</span>
+                        <span class="algo-tag"><i class="fas fa-bolt"></i> XGBoost 0.98</span>
+                        <span class="algo-tag"><i class="fas fa-network-wired"></i> MLP 0.96</span>
+                        <span class="algo-tag"><i class="fas fa-layer-group"></i> TabNet 0.97</span>
+                        <span class="algo-tag"><i class="fas fa-crown"></i> Ensemble 0.989</span>
+                    </div>
+                    <div class="conf-matrix">
+                        <div><i class="fas fa-check-circle" style="color:#16a34a;"></i> Precision 0.987</div>
+                        <div><i class="fas fa-check-double" style="color:#2563eb;"></i> Recall 0.981</div>
+                        <div><i class="fas fa-chart-pie"></i> F1 0.984</div>
+                    </div>
+                    <p style="margin-top:2rem"><i class="fas fa-flask"></i> 10‑fold CV · feature permutation · calibration plot</p>
+                </div>
+                <div class="model-gauge">
+                    <i class="fas fa-gauge-high" style="font-size:3rem;color:#fbbf24;"></i>
+                    <h3>AUC 0.997</h3>
+                    <p>current ensemble</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORKFLOW extended: Dataset + APK (extra long lists) -->
+    <div class="section">
+        <div class="title"><i class="fas fa-diagram-project"></i> Two engines, one platform</div>
+        <div class="workflow-extended">
+            <!-- dataset card -->
+            <div class="workflow-card">
+                <h3><i class="fas fa-database"></i> Dataset training</h3>
+                <p>Upload CSV (permission columns + label). AutoEDA, feature selection, cross‑validation.</p>
+                <div class="feature-list-col">
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> 40+ algorithms</span>
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> Hyperopt tuning</span>
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> Explainability</span>
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> Model export (onnx)</span>
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> Confusion matrix</span>
+                    <span><i class="fas fa-check-circle" style="color:#2563eb;"></i> Threshold moving</span>
+                </div>
+                <a href="#">Browse dataset examples →</a>
+            </div>
+            <!-- apk card -->
+            <div class="workflow-card">
+                <h3><i class="fas fa-file-zipper"></i> APK scanner</h3>
+                <p>Static analysis: permissions, activities, services, receivers, intents.</p>
+                <div class="feature-list-col">
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> AndroGuard parser</span>
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> Risk breakdown</span>
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> Similarity to malware</span>
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> Family prediction</span>
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> Obfuscation score</span>
+                    <span><i class="fas fa-check-circle" style="color:#d97706;"></i> Report (PDF/JSON)</span>
+                </div>
+                <a href="#">Try live scanner →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS bar (new impressive numbers) -->
+    <div class="section" style="padding-top:0">
+        <div class="stats-bar">
+            <div class="stat-item"><div class="stat-number">2.3M</div><div>APK samples</div></div>
+            <div class="stat-item"><div class="stat-number">187</div><div>permission types</div></div>
+            <div class="stat-item"><div class="stat-number">14</div><div>malware families</div></div>
+            <div class="stat-item"><div class="stat-number">99.2%</div><div>detection rate</div></div>
+            <div class="stat-item"><div class="stat-number">50ms</div><div>avg scan</div></div>
+        </div>
+    </div>
+
+    <!-- FAQ section (new) adds length and value -->
+    <div class="section">
+        <div class="title"><i class="fas fa-question-circle"></i> Frequently asked</div>
+        <div class="faq-grid">
+            <div class="faq-item"><div class="faq-question">What permissions are most dangerous?</div><p>READ_SMS, INSTALL_PACKAGES, ACCESS_FINE_LOCATION, RECORD_AUDIO — our model assigns weights.</p></div>
+            <div class="faq-item"><div class="faq-question">Can I use my own dataset?</div><p>Absolutely. Upload CSV with at least 50 samples. We handle missing data.</p></div>
+            <div class="faq-item"><div class="faq-question">Is it only for Android?</div><p>Currently optimized for Android permissions, but we plan iOS and Windows PE.</p></div>
+            <div class="faq-item"><div class="faq-question">How often are models updated?</div><p>Every two weeks with new malware samples. You can also trigger retraining.</p></div>
+            <div class="faq-item"><div class="faq-question">Do you offer an API?</div><p>Yes, REST API with rate limits, enterprise plans have dedicated endpoints.</p></div>
+            <div class="faq-item"><div class="faq-question">What about obfuscated malware?</div><p>Our GAN-based detector spots anomalous permission combinations even if renamed.</p></div>
+        </div>
+    </div>
+
+    <!-- TEAM section (adds human touch) -->
+    <div class="section">
+        <div class="title"><i class="fas fa-users"></i> Core team</div>
+        <div class="team-grid">
+            <div class="member"><div class="member-avatar"><i class="fas fa-user-secret"></i></div><h4>Dr. Alina Vance</h4><p>ML research lead</p></div>
+            <div class="member"><div class="member-avatar"><i class="fas fa-user-ninja"></i></div><h4>Marcus Webb</h4><p>Android security</p></div>
+            <div class="member"><div class="member-avatar"><i class="fas fa-user-astronaut"></i></div><h4>Sophie Carter</h4><p>Backend architect</p></div>
+            <div class="member"><div class="member-avatar"><i class="fas fa-user-tie"></i></div><h4>James Liu</h4><p>Threat intelligence</p></div>
+        </div>
+    </div>
+
+    <!-- FOOTER - lengthy and detailed -->
+    <footer class="footer">
+        <div class="footer-main">
+            <div><h3 style="color:white;">ShieldDroid</h3><p>AI-powered malware detection for Android ecosystems. Permission-based ensemble models.</p><i class="fab fa-github" style="margin-right:1rem;"></i><i class="fab fa-twitter"></i></div>
+            <div><h4>Product</h4><p>Dashboard</p><p>APK scan</p><p>Dataset trainer</p><p>Model zoo</p></div>
+            <div><h4>Resources</h4><p>Documentation</p><p>API reference</p><p>Research papers</p><p>Blog</p></div>
+            <div><h4>Company</h4><p>About us</p><p>Careers</p><p>Privacy</p><p>Bug bounty</p></div>
+            <div><h4>Compliance</h4><p>ISO 27001</p><p>GDPR</p><p>HIPAA ready</p><p> SOC2 Type II</p></div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 ShieldDroid, Inc. — Advanced threat prevention.</span>
+            <span><i class="fas fa-shield"></i> v3.1.2 · 24/7 threat monitoring</span>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

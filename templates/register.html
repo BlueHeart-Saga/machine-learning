@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="center-box">
+
+    <h2 id="title">Create Account</h2>
+
+    <!-- STEP 1 - EMAIL -->
+    <div id="step-email">
+        <input type="email" id="email" placeholder="Enter your email">
+        <button onclick="nextStep()">Next</button>
+    </div>
+
+    <!-- STEP 2 - PASSWORD -->
+    <form method="POST" id="step-password" style="display:none;">
+        <input type="hidden" name="email" id="hidden-email">
+
+        <input type="password" name="password" placeholder="Enter your password" required>
+
+        <button type="submit">Register</button>
+    </form>
+
+</div>
+
+<script>
+function nextStep() {
+    const email = document.getElementById("email").value;
+
+    if (!email) {
+        alert("Please enter your email");
+        return;
+    }
+
+    document.getElementById("hidden-email").value = email;
+
+    document.getElementById("step-email").style.display = "none";
+    document.getElementById("step-password").style.display = "block";
+}
+</script>
+
+</body>
+</html>

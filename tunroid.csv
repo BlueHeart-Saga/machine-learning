@@ -1,0 +1,6 @@
+READ_SMS,SEND_SMS,INTERNET,Class
+1,1,1,Malware
+0,0,1,Benign
+1,0,1,Suspicious
+0,0,0,Benign
+1,1,0,Malware

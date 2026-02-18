@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>APK Analysis Results · Malware Detection</title>
+    <!-- Chart.js & Font Awesome for icons -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #edf3fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* main dashboard container */
+        .dashboard {
+            display: flex;
+            width: 1500px;
+            max-width: 98vw;
+            height: 96vh;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 30px 60px -15px #0b1f3370;
+            overflow: hidden;
+        }
+
+        /* === SIDEBAR (improved, consistent) === */
+        .sidebar {
+            width: 280px;
+            background: #0b1f33;
+            color: #c9ddff;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+        }
+
+        .sidebar h2 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2.8rem;
+            border-left: 5px solid #fbbf24;
+            padding-left: 1rem;
+        }
+
+        .sidebar a {
+            color: #aac3e0;
+            text-decoration: none;
+            padding: 0.9rem 1.2rem;
+            border-radius: 18px;
+            margin: 0.3rem 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .sidebar a i {
+            width: 28px;
+            font-size: 1.2rem;
+        }
+
+        .sidebar a:hover {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .sidebar a.logout {
+            margin-top: auto;
+            color: #f8b4b4;
+        }
+        .sidebar a.logout:hover {
+            background: #3a2435;
+            color: #ffc6c6;
+        }
+
+        /* === MAIN PANEL (scrollable) === */
+        .main {
+            flex: 1;
+            background: #f8fcff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: white;
+            padding: 1.3rem 2.2rem;
+            border-bottom: 1px solid #e2ecf5;
+        }
+        .topbar h3 {
+            font-size: 1.8rem;
+            color: #0e2b4b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* results grid (cards) */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.8rem;
+            padding: 2rem;
+        }
+
+        .results-card {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 12px 28px -10px #1e3a5f30;
+            border: 1px solid #d9e8f5;
+            padding: 1.6rem 1.5rem 1.8rem 1.5rem;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-card:hover {
+            box-shadow: 0 22px 40px -12px #1e3f70;
+        }
+
+        .results-card h4 {
+            font-size: 1.5rem;
+            color: #103459;
+            border-left: 6px solid #fbbf24;
+            padding-left: 1rem;
+            margin-bottom: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box {
+            background: #f2f9ff;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #cde0f0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7rem 0;
+            border-bottom: 1px dashed #bdd2e8;
+            font-size: 1.1rem;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item .label {
+            color: #1e3f60;
+            font-weight: 500;
+        }
+        .summary-item .value {
+            font-weight: 700;
+            background: #0b2b4f;
+            color: white;
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+        }
+
+        .badge-risk {
+            background: #fbbf24;
+            color: #0b1f33;
+            padding: 0.2rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            margin: 0.5rem 0 0.5rem 0;
+        }
+        .full-height-chart {
+            height: 220px;
+        }
+
+        /* special for radar */
+        .radar-container {
+            height: 220px;
+        }
+
+        /* dangerous permission list (fallback if chart too dense) */
+        .danger-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f4faff;
+            border-radius: 24px;
+            padding: 0.8rem 1.2rem;
+        }
+        .danger-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #d3e5fd;
+            font-size: 0.95rem;
+        }
+
+        /* footer / extra */
+        .back-link {
+            padding: 0 2rem 2rem 2rem;
+        }
+        .back-btn {
+            background: white;
+            border: 2px solid #1e3f60;
+            color: #1e3f60;
+            border-radius: 40px;
+            padding: 0.7rem 2.2rem;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            background: #1e3f60;
+            color: white;
+        }
+
+        @media (max-width: 1200px) {
+            .results-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 800px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 1rem; flex-wrap: wrap; }
+            .sidebar h2 { margin-bottom: 0; margin-right: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR with navigation -->
+    <aside class="sidebar">
+        <h2><i class="fas fa-shield"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
+        <a href="/dashboard"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="#"><i class="fas fa-history"></i> Scan History</a>
+        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <header class="topbar">
+            <h3><i class="fas fa-file-zipper" style="color:#2563eb;"></i> APK Security Analysis</h3>
+        </header>
+
+        <!-- RESULTS GRID (cards arranged for clarity) -->
+        <section class="results-grid">
+
+            <!-- CARD 1: SCAN SUMMARY (text summary, improved) -->
+            <div class="results-card">
+                <h4><i class="fas fa-clipboard-list"></i> Scan Summary</h4>
+                <div class="summary-box">
+                    <div class="summary-item"><span class="label"><i class="fas fa-file"></i> File</span> <span class="value">{{ scan_result.filename }}</span></div>
+                    <div class="summary-item"><span class="label"><i class="fas fa-exclamation-triangle"></i> Prediction</span> <span class="value" style="background:#b45309;">{{ scan_result.prediction }}</span></div>
+                    <div class="summary-item"><span class="label"><i class="fas fa-percent"></i> Risk Score</span> <span class="value">{{ scan_result.risk_score }}</span></div>
+                    <div class="summary-item"><span class="label"><i class="fas fa-tag"></i> Risk Level</span> <span class="badge-risk">{{ scan_result.risk_level }}</span></div>
+                    <div class="summary-item"><span class="label"><i class="fas fa-key"></i> Total Permissions</span> <span class="value">{{ scan_result.permissions_found }}</span></div>
+                    <div class="summary-item"><span class="label"><i class="fas fa-check-circle"></i> Confidence</span> <span class="value">{{ scan_result.confidence }}</span></div>
+                </div>
+            </div>
+
+            <!-- CARD 2: RISK GAUGE (doughnut with needle‑like effect) -->
+            <div class="results-card">
+                <h4><i class="fas fa-gauge-high"></i> Risk Score Gauge</h4>
+                <div class="chart-container" style="height:180px;">
+                    <canvas id="riskGauge"></canvas>
+                </div>
+                <p style="text-align:center; margin-top:0.5rem; font-weight:500; color:#15345c;">
+                    Score: <span style="font-size:1.7rem; color:#fbbf24;">{{ scan_result.risk_score }}</span> / 100
+                </p>
+            </div>
+
+            <!-- CARD 3: PERMISSION COMPOSITION (pie) -->
+            <div class="results-card">
+                <h4><i class="fas fa-chart-pie"></i> Permission Composition</h4>
+                <div class="chart-container" style="height:170px;">
+                    <canvas id="permissionChart"></canvas>
+                </div>
+                <div style="display:flex; justify-content:center; gap:1.5rem; margin-top:0.8rem;">
+                    <span><i class="fas fa-circle" style="color:#dc2626;"></i> Dangerous</span>
+                    <span><i class="fas fa-circle" style="color:#2563eb;"></i> Normal</span>
+                </div>
+            </div>
+
+            <!-- CARD 4: DANGEROUS PERMISSIONS (bar chart - or fallback list if too many) -->
+            <div class="results-card">
+                <h4><i class="fas fa-skull"></i> Dangerous Permissions</h4>
+                {% if scan_result.dangerous_permissions and scan_result.dangerous_permissions|length > 0 %}
+                <div class="chart-container" style="height:170px;">
+                    <canvas id="dangerousChart"></canvas>
+                </div>
+                <!-- optional short list underneath -->
+                <div style="margin-top: 0.5rem; font-size:0.9rem; color:#2d4059; max-height:70px; overflow-y:auto;">
+                    {% for p in scan_result.dangerous_permissions[:5] %}
+                        <span class="badge" style="background:#ffedd5; padding:0.2rem 0.7rem; border-radius:30px; display:inline-block; margin:0.2rem;">{{ p.split('.')[-1] }}</span>
+                    {% endfor %}
+                    {% if scan_result.dangerous_permissions|length > 5 %} ...{% endif %}
+                </div>
+                {% else %}
+                <p style="color:#059669;"><i class="fas fa-shield"></i> No dangerous permissions detected</p>
+                {% endif %}
+            </div>
+
+            <!-- CARD 5: RADAR (attack surface) -->
+            <div class="results-card">
+                <h4><i class="fas fa-radar"></i> APK Risk Surface</h4>
+                <div class="radar-container" style="height:200px;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- CARD 6: ADDITIONAL METRICS / EXPLANATION (optional) -->
+            <div class="results-card">
+                <h4><i class="fas fa-info-circle"></i> Analysis Context</h4>
+                <div style="background:#eef5ff; border-radius:20px; padding:1.3rem;">
+                    <p><i class="fas fa-cogs"></i> <strong>Services:</strong> {{ scan_result.services | default(0) }}</p>
+                    <p><i class="fas fa-broadcast-tower"></i> <strong>Receivers:</strong> {{ scan_result.receivers | default(0) }}</p>
+                    <p><i class="fas fa-code"></i> <strong>Native libs:</strong> {{ scan_result.native_libs | default(0) }}</p>
+                    <p style="margin-top:0.7rem;"><i class="fas fa-shield-halved"></i> Model used: ensemble permission-based.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BACK BUTTON -->
+        <div class="back-link">
+            <a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+    </main>
+</div>
+
+<!-- CHART.JS SCRIPT (all dynamic from Flask) -->
+<script>
+(function() {
+    // -------------------------------------------------------------
+    // Data passed from Flask (ensure safe numbers)
+    // -------------------------------------------------------------
+    const riskScore = Number({{ scan_result.risk_score | default(0) }});
+    const totalPermissions = Number({{ scan_result.permissions_found | default(0) }});
+    const dangerousPermissions = {{ scan_result.dangerous_permissions | tojson | safe }};  // array
+    const services = Number({{ scan_result.services | default(0) }});
+    const receivers = Number({{ scan_result.receivers | default(0) }});
+    const nativeLibs = Number({{ scan_result.native_libs | default(0) }});
+
+    // For gauge, we want a max that is at least 100 if score > 100? but riskScore 0-100.
+    // We'll set maxRisk = 100 (typical). If riskScore > 100, adjust.
+    const maxRisk = 100;  // you can also do Math.max(riskScore, 100) but assume 0-100.
+
+    // -------------------------------------------------------------
+    // 1. RISK GAUGE (doughnut with two segments: risk and remainder)
+    // -------------------------------------------------------------
+    const ctxGauge = document.getElementById('riskGauge')?.getContext('2d');
+    if (ctxGauge) {
+        new Chart(ctxGauge, {
+            type: 'doughnut',
+            data: {
+                labels: ['Risk', 'Remaining'],
+                datasets: [{
+                    data: [riskScore, Math.max(0, maxRisk - riskScore)],
+                    backgroundColor: ['#dc2626', '#e2eaf3'],
+                    borderWidth: 0,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 2. PERMISSION COMPOSITION (pie: dangerous vs safe)
+    // -------------------------------------------------------------
+    const dangerousCount = Array.isArray(dangerousPermissions) ? dangerousPermissions.length : 0;
+    const safeCount = Math.max(0, totalPermissions - dangerousCount);
+
+    const ctxPie = document.getElementById('permissionChart')?.getContext('2d');
+    if (ctxPie) {
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Dangerous Permissions', 'Normal Permissions'],
+                datasets: [{
+                    data: [dangerousCount, safeCount],
+                    backgroundColor: ['#b91c1c', '#2563eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 3. DANGEROUS PERMISSIONS BAR CHART (top 6 if too many)
+    // -------------------------------------------------------------
+    const ctxDanger = document.getElementById('dangerousChart')?.getContext('2d');
+    if (ctxDanger && Array.isArray(dangerousPermissions) && dangerousPermissions.length > 0) {
+        // count frequency (but usually each permission appears once)
+        const permCounts = {};
+        dangerousPermissions.forEach(p => permCounts[p] = (permCounts[p] || 0) + 1);
+        let labels = Object.keys(permCounts);
+        const values = Object.values(permCounts);
+
+        // if too many, slice to first 6 for readability
+        if (labels.length > 6) {
+            labels = labels.slice(0, 6);
+            // values accordingly
+        }
+        // clean labels: show short form
+        const shortLabels = labels.map(l => {
+            const parts = l.split('.');
+            return parts.pop() || l;
+        });
+
+        new Chart(ctxDanger, {
+            type: 'bar',
+            data: {
+                labels: shortLabels,
+                datasets: [{
+                    label: 'occurrences',
+                    data: values.slice(0,6),
+                    backgroundColor: '#b45309',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    } else if (ctxDanger) {
+        // no dangerous permissions: show empty chart or fallback
+        new Chart(ctxDanger, {
+            type: 'bar',
+            data: { labels: ['none'], datasets: [{ data: [0], backgroundColor: '#a5b4cb' }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 4. RADAR CHART (attack surface: permissions, services, receivers, native)
+    // -------------------------------------------------------------
+    const ctxRadar = document.getElementById('radarChart')?.getContext('2d');
+    if (ctxRadar) {
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Permissions', 'Services', 'Receivers', 'Native Code'],
+                datasets: [{
+                    label: 'APK surface',
+                    data: [totalPermissions, services, receivers, nativeLibs],
+                    backgroundColor: 'rgba(37,99,235,0.2)',
+                    borderColor: '#1e3a8a',
+                    pointBackgroundColor: '#fbbf24',
+                    pointBorderColor: '#0b1f33',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { r: { beginAtZero: true, ticks: { stepSize: 5 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+})();
+</script>
+
+<!-- Ensure Jinja variables render correctly -->
+</body>
+</html>

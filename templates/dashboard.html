@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Malware Detection Dashboard</title>
+    <!-- Font Awesome (for icons, optional but enhances UI) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* === RESET & GLOBAL === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* === DASHBOARD LAYOUT (preserved structure) === */
+        .dashboard {
+            display: flex;
+            width: 1400px;
+            max-width: 98vw;
+            height: 95vh;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        /* === SIDEBAR (fully responsive) === */
+        .sidebar {
+            width: 280px;
+            background: #0b1f33;
+            color: #e0edff;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 2.5rem;
+            color: white;
+            letter-spacing: -0.5px;
+            border-left: 4px solid #fbbf24;
+            padding-left: 1rem;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            flex: 1;
+        }
+
+        .sidebar nav a {
+            color: #b0c8e0;
+            text-decoration: none;
+            padding: 0.9rem 1.2rem;
+            border-radius: 16px;
+            font-weight: 500;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar nav a i {
+            width: 24px;
+            font-size: 1.2rem;
+        }
+
+        .sidebar nav a.active {
+            background: #1e3a5f;
+            color: white;
+            box-shadow: 0 6px 12px rgba(0, 20, 40, 0.4);
+        }
+
+        .sidebar nav a:hover:not(.active) {
+            background: #1a2f46;
+            color: #d9ecff;
+        }
+
+        .sidebar nav a.logout {
+            margin-top: auto;
+            color: #fca5a5;
+        }
+        .sidebar nav a.logout:hover {
+            background: #3b1e2e;
+            color: #ffb3b3;
+        }
+
+        /* === MAIN PANEL === */
+        .main {
+            flex: 1;
+            background: #f9fcff;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* topbar */
+        .topbar {
+            background: white;
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid #e5ecf3;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .topbar h3 {
+            font-weight: 600;
+            color: #0b2b4f;
+            font-size: 1.4rem;
+        }
+
+        /* page header */
+        .page-header {
+            padding: 2rem 2rem 0.5rem 2rem;
+        }
+        .page-header h4 {
+            font-size: 1.9rem;
+            color: #0f2a44;
+            font-weight: 600;
+        }
+        .page-header p {
+            color: #4b5f77;
+            margin-top: 0.3rem;
+        }
+
+        /* cards container (flex) */
+        .cards {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* CARD — enhanced with drag & drop area */
+        .card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0,20,40,0.06);
+            padding: 2rem;
+            flex: 1 1 380px;
+            border: 1px solid #dde7f0;
+            transition: 0.2s;
+        }
+
+        .card h4 {
+            font-size: 1.7rem;
+            margin-bottom: 0.75rem;
+            color: #15345c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-desc {
+            color: #2d425b;
+            margin-bottom: 1.8rem;
+            line-height: 1.5;
+        }
+
+        /* drag-drop zone */
+        .upload-area {
+            border: 2px dashed #b9d0e7;
+            border-radius: 28px;
+            padding: 2rem 1rem;
+            text-align: center;
+            background: #f4fafd;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .upload-area.dragover {
+            border-color: #2563eb;
+            background: #e1edff;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+        }
+        .upload-area i {
+            font-size: 3rem;
+            color: #3b6cb0;
+            margin-bottom: 0.5rem;
+        }
+        .upload-area p {
+            color: #1f3a63;
+            font-weight: 500;
+        }
+        .upload-area small {
+            color: #5b789b;
+            display: block;
+            margin-top: 0.5rem;
+        }
+        /* hidden file input */
+        .file-input {
+            display: none;
+        }
+
+        /* button + loading container */
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #0b2b4f;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.9rem 2.2rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 16px -6px #1e3a5f70;
+            border: 1px solid #264d7c;
+        }
+        button:hover {
+            background: #123a62;
+            transform: scale(1.02);
+        }
+        button:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* filename display */
+        .file-name {
+            color: #1f3a63;
+            font-size: 0.95rem;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* === LOADING OVERLAY (professional) === */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 31, 51, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        .loading-card {
+            background: white;
+            padding: 2.5rem 3rem;
+            border-radius: 60px;
+            box-shadow: 0 40px 70px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 400px;
+            animation: fadeScale 0.3s ease;
+        }
+        .loading-spinner {
+            border: 8px solid #e9f0f9;
+            border-top: 8px solid #0b2b4f;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        .loading-card p {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #0b1f33;
+            margin-bottom: 0.5rem;
+        }
+        .loading-card .sub {
+            color: #556c88;
+        }
+        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeScale { 0% { opacity:0; transform:scale(0.9); } 100% { opacity:1; transform:scale(1); } }
+
+        /* footer */
+        .footer {
+            padding: 1.2rem 2rem;
+            border-top: 1px solid #deecfb;
+            color: #4b627c;
+            font-weight: 500;
+            margin-top: auto;
+            background: #f2f9ff;
+        }
+
+        /* responsive sidebar */
+        @media (max-width: 900px) {
+            .dashboard { flex-direction: column; height: auto; }
+            .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 1rem 2rem; }
+            .sidebar h2 { margin-bottom: 0; margin-right: 2rem; }
+            .sidebar nav { flex-direction: row; flex-wrap: wrap; }
+            .sidebar nav a.logout { margin-top: 0; }
+        }
+        @media (max-width: 700px) {
+            .sidebar { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR (fully responsive, icons added) -->
+    <aside class="sidebar">
+        <h2><i class="fas fa-shield-halved" style="margin-right: 8px;"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
+        <nav>
+            <a href="/dashboard" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="#"><i class="fas fa-history"></i> Scan History</a>
+            <a href="#"><i class="fas fa-chart-line"></i> Model Metrics</a>
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="main" id="mainContent">
+
+        <!-- TOPBAR (dynamic user) -->
+        <header class="topbar">
+            <h3><i class="fas fa-user-circle" style="margin-right: 8px; color:#1e3a5f;"></i> Welcome {{ user }}</h3>
+        </header>
+
+        <!-- PAGE INTRO -->
+        <section class="page-header">
+            <h4>🔐 Security Analysis Control Panel</h4>
+            <p>Select an operation to begin analysis. Drag & drop files or click to browse.</p>
+        </section>
+
+        <!-- ACTION PANELS (cards with drag & drop) -->
+        <section class="cards">
+
+            <!-- DATASET PANEL -->
+            <div class="card" id="datasetCard">
+                <h4><i class="fas fa-table"></i> Dataset Training & Evaluation</h4>
+                <p class="card-desc">
+                    Upload a dataset (CSV) to train machine learning models and view performance metrics.
+                </p>
+
+                <!-- Drag & drop zone for dataset -->
+                <div class="upload-area" id="datasetDropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & drop your dataset CSV, or click to select</p>
+                    <small>Supported: .csv (max 200MB)</small>
+                </div>
+                <input type="file" id="datasetFileInput" class="file-input" accept=".csv, .txt, .data">
+
+                <!-- hidden filename & form (maintains original functionality) -->
+                <form id="datasetForm" action="/upload_dataset" method="POST" enctype="multipart/form-data" style="display: none;">
+                    <input type="file" name="dataset" id="hiddenDatasetInput" required>
+                </form>
+
+                <!-- action row with button + filename -->
+                <div class="action-row">
+                    <button type="button" id="uploadDatasetBtn"><i class="fas fa-upload"></i> Upload & Train Models</button>
+                    <span class="file-name" id="datasetFileName">No file chosen</span>
+                </div>
+            </div>
+
+            <!-- APK PANEL -->
+            <div class="card" id="apkCard">
+                <h4><i class="fas fa-file-zipper"></i> APK Security Scanner</h4>
+                <p class="card-desc">
+                    Upload an Android APK file to perform permission-based malware risk analysis.
+                </p>
+
+                <!-- Drag & drop zone for apk -->
+                <div class="upload-area" id="apkDropZone">
+                    <i class="fas fa-bug"></i>
+                    <p>Drag & drop your APK file, or click to select</p>
+                    <small>Supported: .apk (max 100MB)</small>
+                </div>
+                <input type="file" id="apkFileInput" class="file-input" accept=".apk, .zip">
+
+                <form id="apkForm" action="/upload_apk" method="POST" enctype="multipart/form-data" style="display: none;">
+                    <input type="file" name="apk" id="hiddenApkInput" required>
+                </form>
+
+                <div class="action-row">
+                    <button type="button" id="uploadApkBtn"><i class="fas fa-shield"></i> Upload & Scan APK</button>
+                    <span class="file-name" id="apkFileName">No file chosen</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i class="fas fa-robot" style="margin-right: 6px;"></i> AI-Powered Android Malware Detection System — secure, fast, explainable</p>
+        </footer>
+    </main>
+
+    <!-- PROFESSIONAL LOADING OVERLAY (same for dataset/apk) -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingMessage">Processing upload</p>
+            <span class="sub" id="loadingSub">This may take a few seconds...</span>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript: drag & drop, loading overlay, preserve original form posts -->
+<script>
+    (function() {
+        // DOM elements
+        const datasetDropZone = document.getElementById('datasetDropZone');
+        const apkDropZone = document.getElementById('apkDropZone');
+        const datasetFileInput = document.getElementById('datasetFileInput');
+        const apkFileInput = document.getElementById('apkFileInput');
+        const hiddenDatasetInput = document.getElementById('hiddenDatasetInput');
+        const hiddenApkInput = document.getElementById('hiddenApkInput');
+        const datasetFileNameSpan = document.getElementById('datasetFileName');
+        const apkFileNameSpan = document.getElementById('apkFileName');
+        const uploadDatasetBtn = document.getElementById('uploadDatasetBtn');
+        const uploadApkBtn = document.getElementById('uploadApkBtn');
+        const datasetForm = document.getElementById('datasetForm');
+        const apkForm = document.getElementById('apkForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const loadingSub = document.getElementById('loadingSub');
+
+        // helper to update filename display
+        function updateFileName(inputElement, spanElement) {
+            if (inputElement.files.length > 0) {
+                spanElement.textContent = inputElement.files[0].name;
+            } else {
+                spanElement.textContent = 'No file chosen';
+            }
+        }
+
+        // sync dataset file input with hidden input (for form submission)
+        datasetFileInput.addEventListener('change', function(e) {
+            if (datasetFileInput.files.length > 0) {
+                // create a FileList-like for hidden input (we can just set files manually? but input is hidden, easier: copy file)
+                // To keep functionality, we manually assign the file to hidden input using DataTransfer
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(datasetFileInput.files[0]);
+                hiddenDatasetInput.files = dataTransfer.files;
+            } else {
+                hiddenDatasetInput.value = ''; // clear
+            }
+            updateFileName(datasetFileInput, datasetFileNameSpan);
+        });
+
+        // sync apk file input
+        apkFileInput.addEventListener('change', function(e) {
+            if (apkFileInput.files.length > 0) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(apkFileInput.files[0]);
+                hiddenApkInput.files = dataTransfer.files;
+            } else {
+                hiddenApkInput.value = '';
+            }
+            updateFileName(apkFileInput, apkFileNameSpan);
+        });
+
+        // DRAG & DROP for dataset
+        datasetDropZone.addEventListener('click', () => datasetFileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            datasetDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            datasetDropZone.addEventListener(eventName, () => datasetDropZone.classList.add('dragover'));
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            datasetDropZone.addEventListener(eventName, () => datasetDropZone.classList.remove('dragover'));
+        });
+
+        datasetDropZone.addEventListener('drop', function(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                datasetFileInput.files = files;  // assign FileList
+                // trigger change event manually
+                const changeEvent = new Event('change', { bubbles: true });
+                datasetFileInput.dispatchEvent(changeEvent);
+            }
+        });
+
+        // DRAG & DROP for apk
+        apkDropZone.addEventListener('click', () => apkFileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            apkDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            apkDropZone.addEventListener(eventName, () => apkDropZone.classList.add('dragover'));
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            apkDropZone.addEventListener(eventName, () => apkDropZone.classList.remove('dragover'));
+        });
+        apkDropZone.addEventListener('drop', function(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                apkFileInput.files = files;
+                const changeEvent = new Event('change', { bubbles: true });
+                apkFileInput.dispatchEvent(changeEvent);
+            }
+        });
+
+        // LOADING overlay function
+        function showLoading(message = "Processing upload", sub = "This may take a few seconds...") {
+            loadingMessage.textContent = message;
+            loadingSub.textContent = sub;
+            loadingOverlay.style.display = 'flex';
+        }
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        // upload button: dataset
+        uploadDatasetBtn.addEventListener('click', function(e) {
+            if (!hiddenDatasetInput.files || hiddenDatasetInput.files.length === 0) {
+                alert('Please select a dataset file first.');
+                return;
+            }
+            // show loading
+            showLoading('Training models...', 'Analyzing dataset · building classifiers');
+            // submit the original form (preserve functionality exactly)
+            datasetForm.submit();   // this will cause page reload, overlay remains until next page load
+            // but if we want to hide if error? we can't because page unloads. that's fine.
+        });
+
+        uploadApkBtn.addEventListener('click', function(e) {
+            if (!hiddenApkInput.files || hiddenApkInput.files.length === 0) {
+                alert('Please select an APK file first.');
+                return;
+            }
+            showLoading('Scanning APK...', 'Extracting permissions · running ML inference');
+            apkForm.submit();
+        });
+
+        // if there's a server error and page doesn't unload quickly, we might want to hide after timeout? but better keep.
+        // also hide overlay on page unload (optional)
+        window.addEventListener('beforeunload', function() {
+            // just in case, but overlay will vanish with new page
+        });
+
+        // minor: prefill if user uses back button? fine
+
+        // Also make sure any click on card does not interfere
+        // In case the form fails to submit because of hidden input, we double-check
+        // But original forms have 'required', so they will block if no file. We already check.
+
+        // Additional: reset file display after form submit? not needed.
+
+        // Initialize file names
+        updateFileName(datasetFileInput, datasetFileNameSpan);
+        updateFileName(apkFileInput, apkFileNameSpan);
+    })();
+</script>
+
+<!-- ensure Jinja2 variable works (for display) -->
+</body>
+</html>
