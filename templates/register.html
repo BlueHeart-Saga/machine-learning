@@ -1,47 +1,390 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register · MalwareLab</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Font Inter (professional) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: #f2f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 1rem;
+        }
+
+        /* home icon top-right corner */
+        .home-corner {
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            z-index: 10;
+        }
+        .home-corner a {
+            background: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(0,20,50,0.1);
+            color: #1e3a5f;
+            font-size: 1.6rem;
+            transition: 0.2s;
+            border: 1px solid #e2eaf2;
+            text-decoration: none;
+        }
+        .home-corner a:hover {
+            background: #1e3a5f;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* register card – professional */
+        .register-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 30px 60px rgba(0,20,40,0.12);
+            padding: 2.8rem 3rem;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #e9eef4;
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 2.2rem;
+        }
+        .register-header h2 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            color: #0a2540;
+            letter-spacing: -0.02em;
+        }
+        .register-header p {
+            color: #4a607a;
+            margin-top: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        /* error box (inline) */
+        .error-message {
+            background: #ffefef;
+            border-left: 6px solid #dc2626;
+            color: #b91c1c;
+            padding: 1rem 1.2rem;
+            border-radius: 24px;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 500;
+            font-size: 0.98rem;
+        }
+        .error-message i {
+            font-size: 1.3rem;
+        }
+
+        /* form groups */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #1e3a5f;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #f9fcff;
+            border: 1.5px solid #d5e2f0;
+            border-radius: 40px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.15s;
+        }
+        .input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px #2563eb20;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .btn-primary {
+            background: #1e3a5f;
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 18px rgba(0,40,80,0.15);
+            margin: 0.5rem 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .login-link {
+            text-align: center;
+            font-weight: 500;
+            color: #2e4a6a;
+            margin-top: 0.5rem;
+        }
+        .login-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 0.3rem;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* success popup */
+        .popup-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .popup-card {
+            background: white;
+            max-width: 360px;
+            width: 90%;
+            border-radius: 48px;
+            padding: 2rem 2rem 1.8rem;
+            text-align: center;
+            box-shadow: 0 40px 70px rgba(0,20,40,0.3);
+            border: 1px solid #d9e6f5;
+        }
+        .popup-card i {
+            font-size: 4rem;
+            color: #10b981;
+            background: #e6f7ee;
+            padding: 1rem;
+            border-radius: 60px;
+            margin-bottom: 1rem;
+        }
+        .popup-card h3 {
+            font-size: 1.8rem;
+            color: #0b1e33;
+            margin-bottom: 0.5rem;
+        }
+        .popup-card p {
+            color: #3b5777;
+            margin-bottom: 2rem;
+        }
+        .popup-btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+        .popup-btn:hover {
+            background: #2563eb;
+        }
+
+        .hint {
+            color: #5b728e;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            margin-left: 1rem;
+        }
+    </style>
 </head>
 <body>
 
-<div class="center-box">
-
-    <h2 id="title">Create Account</h2>
-
-    <!-- STEP 1 - EMAIL -->
-    <div id="step-email">
-        <input type="email" id="email" placeholder="Enter your email">
-        <button onclick="nextStep()">Next</button>
+    <!-- top corner home icon -->
+    <div class="home-corner">
+        <a href="/home" title="Back to Home"><i class="fas fa-home"></i></a>
     </div>
 
-    <!-- STEP 2 - PASSWORD -->
-    <form method="POST" id="step-password" style="display:none;">
-        <input type="hidden" name="email" id="hidden-email">
+    <!-- main register card -->
+    <div class="register-card">
+        <div class="register-header">
+            <h2>Create account</h2>
+            <p>Join MalwareLab for AI-powered malware defense</p>
+        </div>
 
-        <input type="password" name="password" placeholder="Enter your password" required>
+        <!-- INLINE ERROR: visible only if error_msg passed from Flask -->
+        {% if error_msg %}
+        <div class="error-message" id="errorBox" style="display: flex;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="errorText">{{ error_msg }}</span>
+        </div>
+        {% else %}
+        <div class="error-message" id="errorBox" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="errorText"></span>
+        </div>
+        {% endif %}
 
-        <button type="submit">Register</button>
-    </form>
+        <!-- registration form - submits to same route -->
+        <form method="POST" action="/register" id="registerForm" onsubmit="return validateForm(event)">
+            <div class="input-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ request.form.email or '' }}" required>
+                <div class="hint"><i class="far fa-envelope"></i> We'll send a confirmation link</div>
+            </div>
 
-</div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="At least 8 characters" required>
+                    <span class="toggle-pw" onclick="togglePassword('password', this)">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+                <div class="hint"><i class="fas fa-lock"></i> Minimum 8 characters</div>
+            </div>
 
-<script>
-function nextStep() {
-    const email = document.getElementById("email").value;
+            <div class="input-group">
+                <label for="confirm-password">Confirm password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirm-password" placeholder="Re-enter password" required>
+                    <span class="toggle-pw" onclick="togglePassword('confirm-password', this)">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+            </div>
 
-    if (!email) {
-        alert("Please enter your email");
-        return;
-    }
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Register
+            </button>
 
-    document.getElementById("hidden-email").value = email;
+            <div class="login-link">
+                Already have an account? <a href="/login">Log in</a>
+            </div>
+        </form>
+    </div>
 
-    document.getElementById("step-email").style.display = "none";
-    document.getElementById("step-password").style.display = "block";
-}
-</script>
+    <!-- SUCCESS POPUP (hidden initially) -->
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup-card">
+            <i class="fas fa-check-circle"></i>
+            <h3>Registered!</h3>
+            <p>Your account has been created.<br>Redirecting to login ...</p>
+            <button class="popup-btn" id="gotoLoginBtn"><i class="fas fa-arrow-right"></i> Go to Login</button>
+        </div>
+    </div>
 
+    <script>
+        // Toggle password visibility for any field
+        function togglePassword(fieldId, element) {
+            const pwInput = document.getElementById(fieldId);
+            const icon = element.querySelector('i');
+            if (pwInput.type === 'password') {
+                pwInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                pwInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Client-side validation before form submission
+        function validateForm(event) {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            const errorBox = document.getElementById('errorBox');
+            const errorText = document.getElementById('errorText');
+
+            // Email validation
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                errorText.innerText = 'Please enter a valid email address.';
+                errorBox.style.display = 'flex';
+                // hide any server error if previously shown
+                return false; // prevent form submission
+            }
+
+            // Password length check
+            if (password.length < 8) {
+                errorText.innerText = 'Password must be at least 8 characters.';
+                errorBox.style.display = 'flex';
+                return false;
+            }
+
+            // Confirm password match
+            if (password !== confirm) {
+                errorText.innerText = 'Passwords do not match.';
+                errorBox.style.display = 'flex';
+                return false;
+            }
+
+            // If all good, hide error and allow form submission
+            errorBox.style.display = 'none';
+            return true; // form will submit to Flask
+        }
+
+        // If there's a success message from the server (like redirect with param), we could show popup.
+        // But standard flow: after successful registration, Flask redirects to login.
+        // For demo purposes, we'll check if URL contains '?registered=1' and show popup.
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('registered') && urlParams.get('registered') === '1') {
+                document.getElementById('successPopup').style.display = 'flex';
+            }
+        });
+
+        // Redirect to login page when popup button clicked
+        document.getElementById('gotoLoginBtn').addEventListener('click', function() {
+            window.location.href = "{{ url_for('login') }}";
+        });
+
+        // Close popup if clicked outside
+        const popupOverlay = document.getElementById('successPopup');
+        popupOverlay.addEventListener('click', function(e) {
+            if (e.target === popupOverlay) {
+                popupOverlay.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

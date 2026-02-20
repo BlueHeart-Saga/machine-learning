@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact · MalwareLab AI</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Font Inter (same as main project) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background-color: #f2f5f9;
+            color: #0b1e33;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* padding: 2rem; */
+        }
+        /* main contact card – matches about page aesthetic */
+        .contact-container {
+            /* max-width: 1400px; */
+            width: 100%;
+            background: white;
+            /* border-radius: 56px; */
+            box-shadow: 0 30px 60px rgba(0, 20, 40, 0.12);
+            overflow: hidden;
+            /* padding: 3rem 3.5rem; */
+            border: 1px solid #e9eef4;
+        }
+
+        /* ===== REDESIGNED NAVBAR ===== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e9f2;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .logo {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0a2540;
+            letter-spacing: -0.5px;
+        }
+        .logo span {
+            color: #3b82f6;
+            font-weight: 300;
+        }
+
+        /* Navigation links container */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* base link style */
+        .nav-links a {
+            text-decoration: none;
+            color: #1e2f44;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            transition: all 0.15s;
+            font-size: 1rem;
+        }
+
+        .nav-links a:not(.btn) {
+            background: transparent;
+        }
+
+        .nav-links a:not(.btn):hover {
+            background: #f0f4fe;
+            color: #2563eb;
+        }
+
+        /* button styling */
+        .nav-links .btn {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.6rem 1.8rem;
+            border-radius: 40px;
+            box-shadow: 0 4px 8px rgba(0,35,70,0.1);
+            margin-left: 0.5rem;
+            border: none;
+        }
+
+        .nav-links .btn-register {
+            background: #3b82f6; 
+            color: white;
+        }
+
+        .nav-links .btn-login {
+            background: #ffffff;
+            color: #1e3a5f;
+            border: 1.5px solid #1e3a5f;
+            box-shadow: none;
+        }
+
+        .nav-links .btn-login:hover {
+            background: #f0f7ff;
+        }
+
+        .nav-links .btn-register:hover {
+            background: #2563eb;
+        }
+
+        /* make the layout responsive */
+        @media (max-width: 900px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        /* header */
+        .contact-header {
+            margin-bottom: 2.8rem;
+            border-bottom: 2px solid #e2eaf3;
+            padding-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .contact-header i {
+            font-size: 2.8rem;
+            color: #2563eb;
+            background: #eef4ff;
+            padding: 0.8rem;
+            border-radius: 24px;
+        }
+        .contact-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0a2540;
+            letter-spacing: -0.02em;
+        }
+        .contact-header span {
+            color: #3b82f6;
+            font-weight: 300;
+        }
+
+        /* ===== TOP DOUBLE COLUMN: FORM + DETAILS ===== */
+        .contact-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.2rem;
+            margin-bottom: 3rem;
+        }
+        /* form card */
+        .form-card {
+            background: #f9fcff;
+            border-radius: 40px;
+            padding: 2.2rem 2.2rem;
+            border: 1px solid #e1ebf5;
+        }
+        .form-card h2, .details-card h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #0b1e33;
+        }
+        .form-card h2 i, .details-card h2 i {
+            color: #fbbf24;
+            background: #0b2b4f15;
+            padding: 0.5rem;
+            border-radius: 16px;
+        }
+        .input-group {
+            margin-bottom: 1.4rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e3a5f;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 0.9rem 1.4rem;
+            background: white;
+            border: 1.5px solid #d5e2f0;
+            border-radius: 34px;
+            font-size: 1rem;
+            transition: 0.15s;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .input-group textarea {
+            border-radius: 30px;
+            resize: vertical;
+        }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px #2563eb20;
+        }
+        .btn-submit {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 1rem 2.4rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 0 8px 16px rgba(0,40,80,0.1);
+            margin-top: 0.5rem;
+        }
+        .btn-submit:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        /* details card */
+        .details-card {
+            background: #f9fcff;
+            border-radius: 40px;
+            padding: 2.2rem 2.2rem;
+            border: 1px solid #e1ebf5;
+        }
+        .detail-item {
+            display: flex;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        .detail-icon {
+            background: #0b2b4f;
+            color: #fbbf24;
+            width: 54px;
+            height: 54px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+        .detail-text h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .detail-text p, .detail-text a {
+            color: #2b405b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .detail-text a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .social-links {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 2rem;
+        }
+        .social-links a {
+            background: #e9f0fa;
+            color: #1e3a5f;
+            width: 48px;
+            height: 48px;
+            border-radius: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            transition: 0.2s;
+        }
+        .social-links a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* ===== MAP SECTION (interactive placeholder) ===== */
+        .map-section {
+            margin: 2rem 0 2.5rem;
+        }
+        .map-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .map-title i {
+            color: #fbbf24;
+        }
+        .map-container {
+            background: #d9e6f5; /* fallback color */
+            border-radius: 48px;
+            overflow: hidden;
+            border: 1px solid #c5d9ef;
+            height: 300px;
+            position: relative;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.04);
+        }
+        /* simulated map with gradient + pin (interactive look) */
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #bdd6ec;
+            background-image: radial-gradient(circle at 30% 40%, #9bb9dd 0%, transparent 30%),
+                              linear-gradient(324deg, #6989b1 0%, #acc9e8 80%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .map-pin {
+            background: #fbbf24;
+            color: #0b1e33;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px #00000030;
+            border: 4px solid white;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+        .map-pin span {
+            font-size: 0.7rem;
+            font-weight: 400;
+        }
+        .map-attribution {
+            position: absolute;
+            bottom: 8px;
+            right: 16px;
+            background: rgba(255,255,255,0.8);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #1e3a5f;
+        }
+
+        /* ===== FAQ ACCORDION (below map) ===== */
+        .faq-section {
+            margin: 2.5rem 0 1rem;
+        }
+        .faq-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .faq-title i {
+            color: #2563eb;
+            background: #eef4ff;
+            padding: 0.6rem;
+            border-radius: 20px;
+        }
+        .faq-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.4rem;
+        }
+        .faq-item {
+            background: #f6faff;
+            border-radius: 28px;
+            padding: 0.1rem 1.6rem 0.8rem 1.6rem;
+            border-left: 6px solid #2563eb;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .faq-question {
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin: 1.2rem 0 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-question i {
+            color: #2563eb;
+            transition: transform 0.2s;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease, margin 0.2s;
+            color: #2b3e58;
+            padding-right: 1rem;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 130px; /* enough for answers */
+            margin-bottom: 1rem;
+        }
+        .faq-item.open .faq-question i {
+            transform: rotate(90deg);
+        }
+
+        /* responsive */
+        @media (max-width: 1000px) {
+            .contact-row { grid-template-columns: 1fr; }
+            .faq-grid { grid-template-columns: 1fr; }
+            .contact-container { padding: 2rem 1.8rem; }
+        }
+        @media (max-width: 500px) {
+            .detail-item { flex-direction: column; align-items: flex-start; }
+        }
+        hr {
+            border: 1px solid #e1ebf5;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-container">
+
+        <!-- REDESIGNED NAVBAR with Home, About, Contact, Register, Login -->
+    <div class="navbar">
+        <div class="logo">Malware<span>Lab</span></div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+            <!-- register & login buttons with distinct styles -->
+            <a href="/register" class="btn btn-register">Register</a>
+            <a href="/login" class="btn btn-login">Login</a>
+        </div>
+    </div>
+        <!-- header -->
+        <div class="contact-header">
+            <i class="fas fa-address-card"></i>
+            <h1>Contact <span>MalwareLab</span> · get in touch</h1>
+        </div>
+
+        <!-- ROW: contact form + details (side by side) -->
+        <div class="contact-row">
+            <!-- LEFT: CONTACT FORM -->
+            <div class="form-card">
+                <h2><i class="fas fa-pen"></i> Send us a message</h2>
+                <form action="#" method="post">
+                    <div class="input-group">
+                        <label>Full name</label>
+                        <input type="text" placeholder="e.g., Alex Rivera" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" placeholder="alex@company.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Subject</label>
+                        <select>
+                            <option>General inquiry</option>
+                            <option>API / enterprise</option>
+                            <option>Threat report</option>
+                            <option>Partnership</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Message</label>
+                        <textarea rows="4" placeholder="How can we help?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Send message</button>
+                </form>
+            </div>
+
+            <!-- RIGHT: CONTACT DETAILS + SOCIAL -->
+            <div class="details-card">
+                <h2><i class="fas fa-map-pin"></i> Our contact details</h2>
+                
+                <div class="detail-item">
+                    <div class="detail-icon"><i class="fas fa-envelope"></i></div>
+                    <div class="detail-text">
+                        <h4>Email</h4>
+                        <p><a href="mailto:security@MalwareLab.ai">security@MalwareLab.ai</a></p>
+                        <p style="font-size:0.9rem;">response within 12h</p>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon"><i class="fas fa-phone-alt"></i></div>
+                    <div class="detail-text">
+                        <h4>Phone / support</h4>
+                        <p><a href="tel:+18005551234">+1 (800) 555‑1234</a> (24/7 threat line)</p>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon"><i class="fas fa-building"></i></div>
+                    <div class="detail-text">
+                        <h4>Office (HQ)</h4>
+                        <p>1212 Security Blvd, Suite 400<br>Austin, TX 78701, USA</p>
+                    </div>
+                </div>
+
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-x-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAP SECTION (interactive design + coordinates) -->
+        <div class="map-section">
+            <div class="map-title"><i class="fas fa-map-marked-alt"></i> Find us — global HQ</div>
+            <div class="map-container">
+                <div class="map-placeholder">
+                    <div class="map-pin">
+                        <i class="fas fa-Malware"></i>
+                        <span>Austin</span>
+                    </div>
+                    <div class="map-attribution">
+                        <i class="fas fa-location-dot"></i> 30.2672° N, 97.7431° W
+                    </div>
+                </div>
+                <!-- subtle note: interactive map simulation (static but looks like a real map) -->
+            </div>
+        </div>
+
+        <!-- FAQ ACCORDION SECTION (below map, 6 items) -->
+        <div class="faq-section">
+            <div class="faq-title"><i class="fas fa-question-circle"></i> Frequently asked questions</div>
+            <div class="faq-grid" id="faqGrid">
+                <!-- faq item 1 -->
+                <div class="faq-item open" onclick="toggleFaq(this)"> <!-- first open as example -->
+                    <div class="faq-question">What are your support hours? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">Our engineering team is available Monday–Friday, 9am–8pm EST. For critical threats, use the 24/7 phone line.</div>
+                </div>
+                <!-- faq item 2 -->
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">Do you offer API access? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">Yes, we provide REST API with rate‑limited free tier and enterprise dedicated endpoints. Contact us for credentials.</div>
+                </div>
+                <!-- faq item 3 -->
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">How fast is threat analysis? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">Average scan time is 0.8 seconds per APK. Batch processing scales to thousands of samples.</div>
+                </div>
+                <!-- faq item 4 -->
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">Can I schedule a demo? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">Absolutely — use the contact form or email us at security@MalwareLab.ai to set up a personalized walkthrough.</div>
+                </div>
+                <!-- faq item 5 -->
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">Is my data kept private? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">All APK uploads are encrypted. We follow GDPR and HIPAA guidelines. See our privacy policy.</div>
+                </div>
+                <!-- faq item 6 -->
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-question">What about on‑prem deployment? <i class="fas fa-chevron-right"></i></div>
+                    <div class="faq-answer">We offer air‑gapped and on‑prem versions for enterprise. Contact our sales team for details.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- subtle footer note -->
+        <hr>
+        <div style="display: flex; justify-content: space-between; color: #5b728e; font-size:0.95rem;">
+            <span><i class="fas fa-Malware-alt"></i> MalwareLab — AI malware defense</span>
+            <span><i class="fas fa-clock"></i> typically replies within a few hours</span>
+        </div>
+    </div>
+
+    <!-- tiny script to toggle FAQ accordion -->
+    <script>
+        function toggleFaq(el) {
+            // close others? we keep it simple: toggle clicked
+            el.classList.toggle('open');
+        }
+
+        // optional: open first by default? already has class 'open'
+        // we also ensure that clicking on chevron works
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // if the click is on the chevron area, it's same
+                this.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>

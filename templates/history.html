@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan History · Malware Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard {
+            display: flex;
+            width: 1400px;
+            max-width: 98vw;
+            height: 95vh;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #0b1f33;
+            color: #e0edff;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+        }
+
+        .sidebar h2 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 2.5rem;
+            color: white;
+            border-left: 4px solid #fbbf24;
+            padding-left: 1rem;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            flex: 1;
+        }
+
+        .sidebar nav a {
+            color: #b0c8e0;
+            text-decoration: none;
+            padding: 0.9rem 1.2rem;
+            border-radius: 16px;
+            font-weight: 500;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar nav a i { width: 24px; font-size: 1.2rem; }
+        .sidebar nav a.active { background: #1e3a5f; color: white; }
+        .sidebar nav a:hover:not(.active) { background: #1a2f46; color: #d9ecff; }
+        .sidebar nav a.logout { margin-top: auto; color: #fca5a5; }
+        .sidebar nav a.logout:hover { background: #3b1e2e; color: #ffb3b3; }
+
+        .main {
+            flex: 1;
+            background: #f9fcff;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            background: white;
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid #e5ecf3;
+        }
+        .topbar h3 {
+            font-weight: 600;
+            color: #0b2b4f;
+            font-size: 1.4rem;
+        }
+
+        .page-header {
+            padding: 2rem 2rem 1rem 2rem;
+        }
+        .page-header h4 {
+            font-size: 1.9rem;
+            color: #0f2a44;
+            font-weight: 600;
+        }
+        .page-header p {
+            color: #4b5f77;
+            margin-top: 0.3rem;
+        }
+
+        .history-container {
+            padding: 0 2rem 2rem 2rem;
+            flex: 1;
+        }
+
+        .history-table {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,20,40,0.06);
+            border: 1px solid #dde7f0;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f0f7ff;
+            color: #1e3f60;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1.2rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #cde0f0;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5eef8;
+            color: #1e3a5f;
+        }
+
+        tr:hover {
+            background: #f5faff;
+        }
+
+        .risk-badge {
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        .risk-high { background: #fee2e2; color: #b91c1c; }
+        .risk-medium { background: #fef3c7; color: #b45309; }
+        .risk-low { background: #dbeafe; color: #1e3a8a; }
+
+        .pred-malware { color: #b91c1c; font-weight: 600; }
+        .pred-benign { color: #059669; font-weight: 600; }
+
+        .no-history {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7f99;
+        }
+
+        .footer {
+            padding: 1.2rem 2rem;
+            border-top: 1px solid #deecfb;
+            color: #4b627c;
+            margin-top: auto;
+            background: #f2f9ff;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <aside class="sidebar">
+        <h2><i class="fas fa-Malware-halved"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
+        <nav>
+            <a href="/dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="/history" class="active"><i class="fas fa-history"></i> Scan History</a>
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <h3><i class="fas fa-history"></i> Scan History - {{ user }}</h3>
+        </header>
+
+        <section class="page-header">
+            <h4>Previous APK Scans</h4>
+            <p>View results from your previous scans</p>
+        </section>
+
+        <section class="history-container">
+            <div class="history-table">
+                {% if scans and scans|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Filename</th>
+                            <th>Risk Score</th>
+                            <th>Risk Level</th>
+                            <th>Prediction</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scan in scans %}
+                        <tr>
+                            <td>
+                                {% if scan.timestamp %}
+                                    {% if scan.timestamp is string %}
+                                        {{ scan.timestamp }}
+                                    {% else %}
+                                        {{ scan.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ scan.filename }}</td>
+                            <td>{{ scan.risk_score }}/100</td>
+                            <td>
+                                {% if scan.risk_level %}
+                                    {% set risk_class = scan.risk_level.split()[0].lower() if scan.risk_level.split() else 'low' %}
+                                    <span class="risk-badge risk-{{ risk_class }}">
+                                        {{ scan.risk_level }}
+                                    </span>
+                                {% else %}
+                                    <span class="risk-badge risk-low">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td class="{% if scan.prediction == 'malware' %}pred-malware{% else %}pred-benign{% endif %}">
+                                {{ scan.prediction|upper if scan.prediction else 'UNKNOWN' }}
+                            </td>
+                            <td>{{ scan.permissions_count if scan.permissions_count else 0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="no-history">
+                    <i class="fas fa-history" style="font-size: 3rem; color: #b9d0e7; margin-bottom: 1rem;"></i>
+                    <h3>No scan history yet</h3>
+                    <p>Upload your first APK file to get started</p>
+                    <a href="/dashboard" style="color: #2563eb; text-decoration: none; margin-top: 1rem; display: inline-block;">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p><i class="fas fa-robot"></i> AI-Powered Android Malware Detection System</p>
+        </footer>
+    </main>
+</div>
+</body>
+</html>

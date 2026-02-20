@@ -1,201 +1,211 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from pymongo import MongoClient
-import bcrypt
-import joblib
-import numpy as np
-import os
-from werkzeug.utils import secure_filename
+# from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+# from pymongo import MongoClient
+# import bcrypt
+# import joblib
+# import numpy as np
+# import os
+# from werkzeug.utils import secure_filename
 
-from ml.train_models import train_and_evaluate
-from ml.apk_analyzer import analyze_apk
+# from ml.train_models import train_and_evaluate
+# from ml.apk_analyzer import analyze_apk
 
-# ---------------- PATH FIX (CRITICAL FOR VERCEL) ----------------
+# # ---------------- PATH FIX (CRITICAL FOR VERCEL) ----------------
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-app = Flask(
-    __name__,
-    template_folder=os.path.join(BASE_DIR, "templates"),
-    static_folder=os.path.join(BASE_DIR, "static")
-)
+# app = Flask(
+#     __name__,
+#     template_folder=os.path.join(BASE_DIR, "templates"),
+#     static_folder=os.path.join(BASE_DIR, "static")
+# )
 
-app.secret_key = "your_secret_key_here"
+# app.secret_key = "your_secret_key_here"
 
-MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pkl")
-FEATURE_ORDER_PATH = os.path.join(BASE_DIR, "models", "feature_order.pkl")
+# MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pkl")
+# FEATURE_ORDER_PATH = os.path.join(BASE_DIR, "models", "feature_order.pkl")
 
-# Serverless-safe writable directory
-UPLOAD_FOLDER = "/tmp"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# # Serverless-safe writable directory
+# UPLOAD_FOLDER = "/tmp"
+# app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ---------------- SAFE LOADERS ----------------
+# # ---------------- SAFE LOADERS ----------------
 
-def load_model():
-    if not os.path.exists(MODEL_PATH):
-        raise Exception("Model not found. Train the model first.")
-    return joblib.load(MODEL_PATH)
+# def load_model():
+#     if not os.path.exists(MODEL_PATH):
+#         raise Exception("Model not found. Train the model first.")
+#     return joblib.load(MODEL_PATH)
 
-def load_feature_order():
-    if not os.path.exists(FEATURE_ORDER_PATH):
-        raise Exception("feature_order.pkl missing. Retrain model.")
-    return joblib.load(FEATURE_ORDER_PATH)
+# def load_feature_order():
+#     if not os.path.exists(FEATURE_ORDER_PATH):
+#         raise Exception("feature_order.pkl missing. Retrain model.")
+#     return joblib.load(FEATURE_ORDER_PATH)
 
-try:
-    model = load_model()
-    feature_order = load_feature_order()
-except Exception as e:
-    model = None
-    feature_order = None
-    print("Model load error:", str(e))
+# try:
+#     model = load_model()
+#     feature_order = load_feature_order()
+# except Exception as e:
+#     model = None
+#     feature_order = None
+#     print("Model load error:", str(e))
 
 
-# ---------------- MongoDB ----------------
+# # ---------------- MongoDB ----------------
 
-client = MongoClient(
-    "mongodb+srv://Sagasri:srisaga143@box.c7q0mmf.mongodb.net/malware_project?retryWrites=true&w=majority&authSource=admin"
-)
+# client = MongoClient(
+#     "mongodb+srv://Sagasri:srisaga143@box.c7q0mmf.mongodb.net/malware_project?retryWrites=true&w=majority&authSource=admin"
+# )
 
-db = client["machine_learning"]
-users_collection = db["users"]
+# db = client["machine_learning"]
+# users_collection = db["users"]
 
-# ---------------- ROUTES ----------------
+# # ---------------- ROUTES ----------------
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+# @app.route("/")
+# def home():
+#     return render_template("index.html")
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
 
-        email = request.form.get("email")
-        password = request.form.get("password")
+# @app.route("/about")
+# def about():
+#     return render_template("about.html")
 
-        if not email or not password:
-            return "Missing email or password"
+# @app.route("/contact")
+# def contact():
+#     return render_template("contact.html")
 
-        if users_collection.find_one({"email": email}):
-            return "User already exists"
 
-        hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+# @app.route("/register", methods=["GET", "POST"])
+# def register():
+#     if request.method == "POST":
 
-        users_collection.insert_one({
-            "email": email,
-            "password": hashed_pw
-        })
+#         email = request.form.get("email")
+#         password = request.form.get("password")
 
-        return redirect(url_for("login"))
+#         if not email or not password:
+#             return "Missing email or password"
 
-    return render_template("register.html")
+#         if users_collection.find_one({"email": email}):
+#             return "User already exists"
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
+#         hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
-        email = request.form.get("email")
-        password = request.form.get("password")
+#         users_collection.insert_one({
+#             "email": email,
+#             "password": hashed_pw
+#         })
 
-        user = users_collection.find_one({"email": email})
+#         return redirect(url_for("login"))
 
-        if not user:
-            return "User not found"
+#     return render_template("register.html")
 
-        if bcrypt.checkpw(password.encode("utf-8"), user["password"]):
-            session["user"] = email
-            return redirect(url_for("dashboard"))
+# @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     if request.method == "POST":
 
-        return "Invalid password"
+#         email = request.form.get("email")
+#         password = request.form.get("password")
 
-    return render_template("login.html")
+#         user = users_collection.find_one({"email": email})
 
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
-        return redirect(url_for("login"))
+#         if not user:
+#             return "User not found"
 
-    return render_template("dashboard.html", user=session["user"])
+#         if bcrypt.checkpw(password.encode("utf-8"), user["password"]):
+#             session["user"] = email
+#             return redirect(url_for("dashboard"))
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+#         return "Invalid password"
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    if "user" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
+#     return render_template("login.html")
 
-    data = request.json
+# @app.route("/dashboard")
+# def dashboard():
+#     if "user" not in session:
+#         return redirect(url_for("login"))
 
-    try:
-        vector = [data.get(f, 0) for f in feature_order]
-        features = np.array([vector])
+#     return render_template("dashboard.html", user=session["user"])
 
-        prediction = model.predict(features)[0]
+# @app.route("/logout")
+# def logout():
+#     session.clear()
+#     return redirect(url_for("login"))
 
-        confidence = "N/A"
-        if hasattr(model, "predict_proba"):
-            confidence = float(np.max(model.predict_proba(features)))
+# @app.route("/predict", methods=["POST"])
+# def predict():
+#     if "user" not in session:
+#         return jsonify({"error": "Unauthorized"}), 401
 
-        return jsonify({
-            "prediction": str(prediction),
-            "confidence": round(confidence, 4) if confidence != "N/A" else confidence
-        })
+#     data = request.json
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+#     try:
+#         vector = [data.get(f, 0) for f in feature_order]
+#         features = np.array([vector])
 
-@app.route("/upload_dataset", methods=["POST"])
-def upload_dataset():
-    if "user" not in session:
-        return redirect(url_for("login"))
+#         prediction = model.predict(features)[0]
 
-    file = request.files["dataset"]
-    filename = secure_filename(file.filename)
+#         confidence = "N/A"
+#         if hasattr(model, "predict_proba"):
+#             confidence = float(np.max(model.predict_proba(features)))
 
-    dataset_path = os.path.join("/tmp", filename)
-    file.save(dataset_path)
+#         return jsonify({
+#             "prediction": str(prediction),
+#             "confidence": round(confidence, 4) if confidence != "N/A" else confidence
+#         })
 
-    try:
-        metrics = train_and_evaluate(dataset_path)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
 
-        global model, feature_order
-        model = load_model()
-        feature_order = load_feature_order()
+# @app.route("/upload_dataset", methods=["POST"])
+# def upload_dataset():
+#     if "user" not in session:
+#         return redirect(url_for("login"))
 
-        return render_template(
-            "dataset_results.html",
-            user=session["user"],
-            metrics=metrics,
-            filename=filename
-        )
+#     file = request.files["dataset"]
+#     filename = secure_filename(file.filename)
 
-    except Exception as e:
-        return f"Training Error: {str(e)}"
+#     dataset_path = os.path.join("/tmp", filename)
+#     file.save(dataset_path)
 
-@app.route("/upload_apk", methods=["POST"])
-def upload_apk():
-    if "user" not in session:
-        return redirect(url_for("login"))
+#     try:
+#         metrics = train_and_evaluate(dataset_path)
 
-    file = request.files["apk"]
-    filename = secure_filename(file.filename)
+#         global model, feature_order
+#         model = load_model()
+#         feature_order = load_feature_order()
 
-    apk_path = os.path.join("/tmp", filename)
-    file.save(apk_path)
+#         return render_template(
+#             "dataset_results.html",
+#             user=session["user"],
+#             metrics=metrics,
+#             filename=filename
+#         )
 
-    try:
-        result = analyze_apk(apk_path)
-        result["filename"] = filename
+#     except Exception as e:
+#         return f"Training Error: {str(e)}"
 
-        return render_template(
-            "apk_results.html",
-            user=session["user"],
-            scan_result=result
-        )
+# @app.route("/upload_apk", methods=["POST"])
+# def upload_apk():
+#     if "user" not in session:
+#         return redirect(url_for("login"))
 
-    except Exception as e:
-        return f"APK Analysis Error: {str(e)}"
+#     file = request.files["apk"]
+#     filename = secure_filename(file.filename)
 
-# REQUIRED FOR VERCEL
-handler = app
+#     apk_path = os.path.join("/tmp", filename)
+#     file.save(apk_path)
+
+#     try:
+#         result = analyze_apk(apk_path)
+#         result["filename"] = filename
+
+#         return render_template(
+#             "apk_results.html",
+#             user=session["user"],
+#             scan_result=result
+#         )
+
+#     except Exception as e:
+#         return f"APK Analysis Error: {str(e)}"
+
+# # REQUIRED FOR VERCEL
+# handler = app

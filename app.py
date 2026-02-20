@@ -5,6 +5,7 @@ import joblib
 import numpy as np
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime  # ✅ Add this import
 
 from ml.train_models import train_and_evaluate
 from ml.apk_analyzer import analyze_apk
@@ -42,12 +43,26 @@ client = MongoClient(
 
 db = client["machine_learning"]
 users_collection = db["users"]
+scan_history_collection = db["scan_history"]  # ✅ Add this collection
 
 # ---------------- ROUTES ----------------
 
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+# ---------------- ABOUT ----------------
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+# ---------------- CONTACT ----------------
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
 
 # ---------------- REGISTER ----------------
 
@@ -105,6 +120,33 @@ def dashboard():
         return redirect(url_for("login"))
 
     return render_template("dashboard.html", user=session["user"])
+
+# ---------------- HISTORY PAGE ----------------
+
+@app.route("/history")
+def history():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    
+    try:
+        # Get scan history for current user, sorted by newest first
+        scans = list(scan_history_collection.find(
+            {"user": session["user"]}
+        ).sort("timestamp", -1).limit(50))
+        
+        # Convert ObjectId to string for JSON serialization
+        for scan in scans:
+            scan["_id"] = str(scan["_id"])
+            # Convert datetime to string if needed
+            if hasattr(scan.get("timestamp"), 'strftime'):
+                scan["timestamp"] = scan["timestamp"].strftime('%Y-%m-%d %H:%M:%S')
+        
+        return render_template("history.html", user=session["user"], scans=scans)
+    
+    except Exception as e:
+        print(f"History error: {e}")
+        # Return empty history if there's an error
+        return render_template("history.html", user=session["user"], scans=[])
 
 # ---------------- LOGOUT ----------------
 
@@ -189,6 +231,24 @@ def upload_apk():
     try:
         result = analyze_apk(path)
         result["filename"] = file.filename
+        
+        # ✅ Save to scan history
+        scan_record = {
+            "user": session["user"],
+            "filename": file.filename,
+            "timestamp": datetime.now(),
+            "risk_score": result.get("risk_score", 0),
+            "risk_level": result.get("risk_level", "Unknown"),
+            "prediction": result.get("prediction", "Unknown"),
+            "permissions_count": result.get("permissions_found", 0)
+        }
+        
+        # Add enhanced data if available
+        if "enhanced" in result:
+            scan_record["ensemble_prediction"] = result["enhanced"].get("ensemble_prediction", "Unknown")
+            scan_record["models_count"] = len(result["enhanced"].get("models", {}))
+        
+        scan_history_collection.insert_one(scan_record)
 
         return render_template(
             "apk_results.html",

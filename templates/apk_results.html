@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>APK Analysis Results · Malware Detection</title>
-    <!-- Chart.js & Font Awesome for icons -->
+    <title>APK Analysis Results</title>
+    <!-- Chart.js & Font Awesome -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -22,19 +22,17 @@
             justify-content: center;
         }
 
-        /* main dashboard container */
         .dashboard {
             display: flex;
-            width: 1500px;
+            width: 1600px;
             max-width: 98vw;
             height: 96vh;
             background: white;
-            border-radius: 40px;
+            border-radius: 10px;
             box-shadow: 0 30px 60px -15px #0b1f3370;
             overflow: hidden;
         }
 
-        /* === SIDEBAR (improved, consistent) === */
         .sidebar {
             width: 280px;
             background: #0b1f33;
@@ -66,26 +64,11 @@
             transition: 0.2s;
         }
 
-        .sidebar a i {
-            width: 28px;
-            font-size: 1.2rem;
-        }
+        .sidebar a i { width: 28px; font-size: 1.2rem; }
+        .sidebar a:hover { background: #1e3a5f; color: white; }
+        .sidebar a.logout { margin-top: auto; color: #f8b4b4; }
+        .sidebar a.logout:hover { background: #3a2435; color: #ffc6c6; }
 
-        .sidebar a:hover {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        .sidebar a.logout {
-            margin-top: auto;
-            color: #f8b4b4;
-        }
-        .sidebar a.logout:hover {
-            background: #3a2435;
-            color: #ffc6c6;
-        }
-
-        /* === MAIN PANEL (scrollable) === */
         .main {
             flex: 1;
             background: #f8fcff;
@@ -98,7 +81,11 @@
             background: white;
             padding: 1.3rem 2.2rem;
             border-bottom: 1px solid #e2ecf5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        
         .topbar h3 {
             font-size: 1.8rem;
             color: #0e2b4b;
@@ -106,8 +93,20 @@
             align-items: center;
             gap: 8px;
         }
+        
+        .risk-badge {
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .risk-critical { background: #7f1d1d; color: white; }
+        .risk-high { background: #b91c1c; color: white; }
+        .risk-medium { background: #fbbf24; color: #0b1f33; }
+        .risk-low { background: #2563eb; color: white; }
+        .risk-safe { background: #059669; color: white; }
 
-        /* results grid (cards) */
         .results-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -117,7 +116,7 @@
 
         .results-card {
             background: white;
-            border-radius: 30px;
+            border-radius: 3px;
             box-shadow: 0 12px 28px -10px #1e3a5f30;
             border: 1px solid #d9e8f5;
             padding: 1.6rem 1.5rem 1.8rem 1.5rem;
@@ -141,79 +140,109 @@
             gap: 6px;
         }
 
-        .summary-box {
-            background: #f2f9ff;
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: 1px solid #cde0f0;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.7rem 0;
-            border-bottom: 1px dashed #bdd2e8;
-            font-size: 1.1rem;
-        }
-        .summary-item:last-child {
-            border-bottom: none;
-        }
-
-        .summary-item .label {
-            color: #1e3f60;
-            font-weight: 500;
-        }
-        .summary-item .value {
-            font-weight: 700;
-            background: #0b2b4f;
-            color: white;
-            padding: 0.2rem 1rem;
-            border-radius: 60px;
-        }
-
-        .badge-risk {
-            background: #fbbf24;
-            color: #0b1f33;
-            padding: 0.2rem 1.2rem;
-            border-radius: 60px;
-            font-weight: 700;
-        }
-
         .chart-container {
             position: relative;
             height: 200px;
             width: 100%;
-            margin: 0.5rem 0 0.5rem 0;
-        }
-        .full-height-chart {
-            height: 220px;
+            margin: 0.5rem 0;
         }
 
-        /* special for radar */
-        .radar-container {
-            height: 220px;
-        }
-
-        /* dangerous permission list (fallback if chart too dense) */
-        .danger-list {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f4faff;
-            border-radius: 24px;
-            padding: 0.8rem 1.2rem;
-        }
-        .danger-item {
+        .risk-factor-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #d3e5fd;
+            margin: 0.5rem 0;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #e5eef8;
             font-size: 0.95rem;
         }
-
-        /* footer / extra */
-        .back-link {
-            padding: 0 2rem 2rem 2rem;
+        
+        .risk-factor-bar {
+            height: 6px;
+            background: #e5eef8;
+            border-radius: 3px;
+            margin: 0.3rem 0 0.8rem 0;
+            overflow: hidden;
         }
+        
+        .risk-factor-fill {
+            height: 100%;
+            background: #b91c1c;
+            border-radius: 3px;
+        }
+
+        .permission-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 0.5rem;
+            border: 1px solid #e2eaf5;
+        }
+        
+        .permission-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e2eaf5;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+        
+        .permission-badge {
+            background: #dc2626;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .info-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e5eef8;
+        }
+        
+        .info-table td:first-child {
+            font-weight: 600;
+            color: #1e3f60;
+            width: 40%;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        
+        .stat-item {
+            background: #f5faff;
+            padding: 0.8rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0b2b4f;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #4a6a8a;
+        }
+
+        .back-link { padding: 0 2rem 2rem 2rem; }
         .back-btn {
             background: white;
             border: 2px solid #1e3f60;
@@ -227,155 +256,366 @@
             gap: 8px;
             transition: 0.2s;
         }
-        .back-btn:hover {
-            background: #1e3f60;
-            color: white;
+        .back-btn:hover { background: #1e3f60; color: white; }
+
+        .error-message {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
         }
 
-        @media (max-width: 1200px) {
-            .results-grid { grid-template-columns: repeat(2, 1fr); }
+        .safe-message {
+            color: #059669;
+            background: #e6f7e6;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
         }
-        @media (max-width: 800px) {
-            .dashboard { flex-direction: column; }
-            .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 1rem; flex-wrap: wrap; }
-            .sidebar h2 { margin-bottom: 0; margin-right: 1.5rem; }
+        
+        /* Ultimate defensive styling */
+        .debug-note {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.5rem;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
-
-    <!-- SIDEBAR with navigation -->
     <aside class="sidebar">
-        <h2><i class="fas fa-shield"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
+        <h2><i class="fas fa-Malware"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
         <a href="/dashboard"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-        <a href="#"><i class="fas fa-history"></i> Scan History</a>
+        <a href="/history"><i class="fas fa-history"></i> Scan History</a>
         <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main">
-
         <header class="topbar">
-            <h3><i class="fas fa-file-zipper" style="color:#2563eb;"></i> APK Security Analysis</h3>
+            <h3><i class="fas fa-file-zipper" style="color:#2563eb;"></i> APK Analysis Results</h3>
+            <div class="risk-badge risk-{{ scan_result.risk_level.split()[0].lower() if scan_result.risk_level and scan_result.risk_level is string else 'unknown' }}">
+                {{ scan_result.risk_level if scan_result.risk_level else 'Unknown' }}
+            </div>
         </header>
 
-        <!-- RESULTS GRID (cards arranged for clarity) -->
-        <section class="results-grid">
-
-            <!-- CARD 1: SCAN SUMMARY (text summary, improved) -->
-            <div class="results-card">
-                <h4><i class="fas fa-clipboard-list"></i> Scan Summary</h4>
-                <div class="summary-box">
-                    <div class="summary-item"><span class="label"><i class="fas fa-file"></i> File</span> <span class="value">{{ scan_result.filename }}</span></div>
-                    <div class="summary-item"><span class="label"><i class="fas fa-exclamation-triangle"></i> Prediction</span> <span class="value" style="background:#b45309;">{{ scan_result.prediction }}</span></div>
-                    <div class="summary-item"><span class="label"><i class="fas fa-percent"></i> Risk Score</span> <span class="value">{{ scan_result.risk_score }}</span></div>
-                    <div class="summary-item"><span class="label"><i class="fas fa-tag"></i> Risk Level</span> <span class="badge-risk">{{ scan_result.risk_level }}</span></div>
-                    <div class="summary-item"><span class="label"><i class="fas fa-key"></i> Total Permissions</span> <span class="value">{{ scan_result.permissions_found }}</span></div>
-                    <div class="summary-item"><span class="label"><i class="fas fa-check-circle"></i> Confidence</span> <span class="value">{{ scan_result.confidence }}</span></div>
+        <!-- Summary Card -->
+        <div style="padding: 0 2rem;">
+            <div class="results-card" style="width: 100%;">
+                <h4><i class="fas fa-info-circle"></i> Analysis Summary</h4>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <table class="info-table">
+                            <tr><td>Filename</td><td style="word-break: break-word;">{{ scan_result.filename if scan_result.filename else 'Unknown' }}</td></tr>
+                            {% if scan_result.enhanced and scan_result.enhanced.package_info %}
+                            <tr><td>Package</td><td>{{ scan_result.enhanced.package_info.name if scan_result.enhanced.package_info.name else 'Unknown' }}</td></tr>
+                            <tr><td>Version</td><td>{{ scan_result.enhanced.package_info.version if scan_result.enhanced.package_info.version else 'Unknown' }}</td></tr>
+                            <tr><td>Min SDK</td><td>{{ scan_result.enhanced.package_info.min_sdk if scan_result.enhanced.package_info.min_sdk else 'Unknown' }}</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div>
+                        <table class="info-table">
+                            <tr><td>Prediction</td>
+                                <td><span style="font-weight: 700; color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};">
+                                    {{ scan_result.prediction|upper if scan_result.prediction else 'UNKNOWN' }}
+                                </span></td>
+                            </tr>
+                            <tr><td>Confidence</td><td>{{ scan_result.confidence if scan_result.confidence else 'N/A' }}{% if scan_result.confidence and scan_result.confidence != 'N/A' %}%{% endif %}</td></tr>
+                            <tr><td>Risk Score</td><td><strong>{{ scan_result.risk_score if scan_result.risk_score else 0 }}</strong>/100</td></tr>
+                        </table>
+                    </div>
+                    <div style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-size: 4rem;">
+                            <i class="fas fa-{% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}exclamation-triangle{% else %}check-circle{% endif %}" 
+                               style="color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};"></i>
+                        </div>
+                        <div style="font-weight: 700; font-size: 1.5rem; color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};">
+                            {{ scan_result.prediction|upper if scan_result.prediction else 'UNKNOWN' }}
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- CARD 2: RISK GAUGE (doughnut with needle‑like effect) -->
+        <!-- Results Grid -->
+        <section class="results-grid">
+            <!-- Card 1: Risk Score Gauge -->
             <div class="results-card">
-                <h4><i class="fas fa-gauge-high"></i> Risk Score Gauge</h4>
-                <div class="chart-container" style="height:180px;">
+                <h4><i class="fas fa-gauge-high"></i> Risk Score</h4>
+                <div class="chart-container" style="height: 180px;">
                     <canvas id="riskGauge"></canvas>
                 </div>
-                <p style="text-align:center; margin-top:0.5rem; font-weight:500; color:#15345c;">
-                    Score: <span style="font-size:1.7rem; color:#fbbf24;">{{ scan_result.risk_score }}</span> / 100
-                </p>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.risk_score if scan_result.risk_score else 0 }}</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% if scan_result.enhanced and scan_result.enhanced.risk_factors and scan_result.enhanced.risk_factors is mapping %}
+                                {{ scan_result.enhanced.risk_factors|length }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Risk Factors</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- CARD 3: PERMISSION COMPOSITION (pie) -->
+            <!-- Card 2: Permission Overview -->
             <div class="results-card">
-                <h4><i class="fas fa-chart-pie"></i> Permission Composition</h4>
-                <div class="chart-container" style="height:170px;">
+                <h4><i class="fas fa-key"></i> Permissions</h4>
+                <div class="chart-container" style="height: 160px;">
                     <canvas id="permissionChart"></canvas>
                 </div>
-                <div style="display:flex; justify-content:center; gap:1.5rem; margin-top:0.8rem;">
-                    <span><i class="fas fa-circle" style="color:#dc2626;"></i> Dangerous</span>
-                    <span><i class="fas fa-circle" style="color:#2563eb;"></i> Normal</span>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.dangerous is number %}
+                                {{ scan_result.enhanced.permissions.dangerous }}
+                            {% elif scan_result.dangerous_permissions and scan_result.dangerous_permissions is iterable and scan_result.dangerous_permissions is not string %}
+                                {{ scan_result.dangerous_permissions|length }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Dangerous</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.total is number %}
+                                {{ scan_result.enhanced.permissions.total }}
+                            {% elif scan_result.permissions_found is number %}
+                                {{ scan_result.permissions_found }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Total</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- CARD 4: DANGEROUS PERMISSIONS (bar chart - or fallback list if too many) -->
+            <!-- Card 3: Risk Factors - ULTIMATE DEFENSIVE LOOP -->
             <div class="results-card">
-                <h4><i class="fas fa-skull"></i> Dangerous Permissions</h4>
-                {% if scan_result.dangerous_permissions and scan_result.dangerous_permissions|length > 0 %}
-                <div class="chart-container" style="height:170px;">
-                    <canvas id="dangerousChart"></canvas>
+                <h4><i class="fas fa-chart-pie"></i> Risk Factors</h4>
+                <div style="margin-top: 0.5rem;">
+                    {# MULTI-LAYER DEFENSE: Check if risk_factors exists, is a dictionary, and has items #}
+                    {% if scan_result.enhanced and 
+                          scan_result.enhanced.risk_factors is defined and 
+                          scan_result.enhanced.risk_factors is not none and
+                          scan_result.enhanced.risk_facts is mapping and
+                          scan_result.enhanced.risk_factors.items is defined %}
+                        
+                        {# SAFE TO LOOP - we've verified it's a dictionary with items() method #}
+                        {% for factor, score in scan_result.enhanced.risk_factors.items() %}
+                        <div class="risk-factor-item">
+                            <span>{{ factor|replace('_', ' ')|title if factor is string else 'Unknown Factor' }}</span>
+                            <span><strong>
+                                {% if score is number %}
+                                    {{ "%.1f"|format(score) }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </strong></span>
+                        </div>
+                        <div class="risk-factor-bar">
+                            <div class="risk-factor-fill" style="width: {{ (score|float / 30 * 100)|min(100) if score is number else 0 }}%;"></div>
+                        </div>
+                        {% endfor %}
+                        
+                    {# IF IT'S A FLOAT OR OTHER NON-ITERABLE, SHOW MESSAGE INSTEAD OF LOOPING #}
+                    {% elif scan_result.enhanced and scan_result.enhanced.risk_factors is defined and scan_result.enhanced.risk_factors is number %}
+                        <div class="error-message">
+                            ⚠️ Risk factor data is a number ({{ scan_result.enhanced.risk_factors }}) instead of a dictionary
+                        </div>
+                        <div class="debug-note">Expected dictionary, got float - displaying placeholder</div>
+                        <!-- Show placeholder data instead of crashing -->
+                        <div class="risk-factor-item"><span>Permissions</span><span><strong>0.0</strong></span></div>
+                        <div class="risk-factor-bar"><div class="risk-factor-fill" style="width: 0%;"></div></div>
+                        <div class="risk-factor-item"><span>Components</span><span><strong>0.0</strong></span></div>
+                        <div class="risk-factor-bar"><div class="risk-factor-fill" style="width: 0%;"></div></div>
+                        
+                    {% else %}
+                        <p style="color: #6b7f99; text-align: center;">No risk factor data available</p>
+                    {% endif %}
                 </div>
-                <!-- optional short list underneath -->
-                <div style="margin-top: 0.5rem; font-size:0.9rem; color:#2d4059; max-height:70px; overflow-y:auto;">
-                    {% for p in scan_result.dangerous_permissions[:5] %}
-                        <span class="badge" style="background:#ffedd5; padding:0.2rem 0.7rem; border-radius:30px; display:inline-block; margin:0.2rem;">{{ p.split('.')[-1] }}</span>
-                    {% endfor %}
-                    {% if scan_result.dangerous_permissions|length > 5 %} ...{% endif %}
-                </div>
-                {% else %}
-                <p style="color:#059669;"><i class="fas fa-shield"></i> No dangerous permissions detected</p>
-                {% endif %}
             </div>
 
-            <!-- CARD 5: RADAR (attack surface) -->
+            <!-- Card 4: Components -->
             <div class="results-card">
-                <h4><i class="fas fa-radar"></i> APK Risk Surface</h4>
-                <div class="radar-container" style="height:200px;">
-                    <canvas id="radarChart"></canvas>
+                <h4><i class="fas fa-cubes"></i> Components</h4>
+                <div class="chart-container" style="height: 160px;">
+                    <canvas id="componentsChart"></canvas>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.components.activities if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.activities is number else scan_result.activities if scan_result.activities is number else 0 }}</div>
+                        <div class="stat-label">Activities</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.components.services if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.services is number else scan_result.services if scan_result.services is number else 0 }}</div>
+                        <div class="stat-label">Services</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.components.receivers if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.receivers is number else scan_result.receivers if scan_result.receivers is number else 0 }}</div>
+                        <div class="stat-label">Receivers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.components.providers if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.providers is number else 0 }}</div>
+                        <div class="stat-label">Providers</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- CARD 6: ADDITIONAL METRICS / EXPLANATION (optional) -->
+            <!-- Card 5: Dangerous Permissions - ULTIMATE DEFENSIVE LOOP -->
             <div class="results-card">
-                <h4><i class="fas fa-info-circle"></i> Analysis Context</h4>
-                <div style="background:#eef5ff; border-radius:20px; padding:1.3rem;">
-                    <p><i class="fas fa-cogs"></i> <strong>Services:</strong> {{ scan_result.services | default(0) }}</p>
-                    <p><i class="fas fa-broadcast-tower"></i> <strong>Receivers:</strong> {{ scan_result.receivers | default(0) }}</p>
-                    <p><i class="fas fa-code"></i> <strong>Native libs:</strong> {{ scan_result.native_libs | default(0) }}</p>
-                    <p style="margin-top:0.7rem;"><i class="fas fa-shield-halved"></i> Model used: ensemble permission-based.</p>
+                <h4><i class="fas fa-exclamation-triangle"></i> Dangerous Permissions</h4>
+                <div class="permission-list">
+                    {# MULTI-LAYER DEFENSE: Check if dangerous_list exists and is iterable but NOT a string/float #}
+                    {% if scan_result.enhanced and 
+                          scan_result.enhanced.permissions and 
+                          scan_result.enhanced.permissions.dangerous_list is defined and
+                          scan_result.enhanced.permissions.dangerous_list is not none and
+                          scan_result.enhanced.permissions.dangerous_list is iterable and 
+                          scan_result.enhanced.permissions.dangerous_list is not string and
+                          scan_result.enhanced.permissions.dangerous_list is not number %}
+                        
+                        {# SAFE TO LOOP - we've verified it's a list/iterable #}
+                        {% for perm in scan_result.enhanced.permissions.dangerous_list %}
+                            {% if perm is string %}
+                            <div class="permission-item">
+                                <span style="font-size: 0.85rem;">{{ perm.split('.')[-1] if '.' in perm else perm }}</span>
+                                <span class="permission-badge">DANGEROUS</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                    {# IF IT'S A FLOAT OR OTHER NON-ITERABLE, SHOW MESSAGE INSTEAD OF LOOPING #}
+                    {% elif scan_result.enhanced and 
+                          scan_result.enhanced.permissions and 
+                          scan_result.enhanced.permissions.dangerous_list is defined and
+                          scan_result.enhanced.permissions.dangerous_list is number %}
+                        <div class="error-message">
+                            ⚠️ Permission data is a number ({{ scan_result.enhanced.permissions.dangerous_list }}) instead of a list
+                        </div>
+                        
+                    {% elif scan_result.dangerous_permissions and 
+                          scan_result.dangerous_permissions is iterable and 
+                          scan_result.dangerous_permissions is not string and
+                          scan_result.dangerous_permissions is not number %}
+                        {# FALLBACK to basic dangerous_permissions #}
+                        {% for perm in scan_result.dangerous_permissions %}
+                        <div class="permission-item">
+                            <span style="font-size: 0.85rem;">{{ perm }}</span>
+                            <span class="permission-badge">DANGEROUS</span>
+                        </div>
+                        {% endfor %}
+                        
+                    {% else %}
+                        <p style="color: #6b7f99; text-align: center;">No dangerous permissions detected</p>
+                    {% endif %}
                 </div>
+                <div style="margin-top: 0.8rem; text-align: center; color: #6b7f99; font-size: 0.85rem;">
+                    Total: 
+                    {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.dangerous_list is iterable and scan_result.enhanced.permissions.dangerous_list is not string and scan_result.enhanced.permissions.dangerous_list is not number %}
+                        {{ scan_result.enhanced.permissions.dangerous_list|length }}
+                    {% elif scan_result.dangerous_permissions is iterable and scan_result.dangerous_permissions is not string and scan_result.dangerous_permissions is not number %}
+                        {{ scan_result.dangerous_permissions|length }}
+                    {% else %}
+                        0
+                    {% endif %} dangerous permissions
+                </div>
+            </div>
+
+            <!-- Card 6: File Analysis -->
+            <div class="results-card">
+                <h4><i class="fas fa-file"></i> Files</h4>
+                <div class="chart-container" style="height: 160px;">
+                    <canvas id="filesChart"></canvas>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.files.dex if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.dex is number else 0 }}</div>
+                        <div class="stat-label">DEX</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.files.native_libs if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.native_libs is number else scan_result.native_libs if scan_result.native_libs is number else 0 }}</div>
+                        <div class="stat-label">Native</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.files.assets if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.assets is number else 0 }}</div>
+                        <div class="stat-label">Assets</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ scan_result.enhanced.files.total if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.total is number else 0 }}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: APK Details -->
+            <div class="results-card">
+                <h4><i class="fas fa-info-circle"></i> APK Details</h4>
+                <table class="info-table">
+                    {% if scan_result.enhanced and scan_result.enhanced.package_info %}
+                    <tr><td>Package</td><td style="font-size: 0.85rem;">{{ scan_result.enhanced.package_info.name if scan_result.enhanced.package_info.name else 'Unknown' }}</td></tr>
+                    <tr><td>Version</td><td>{{ scan_result.enhanced.package_info.version if scan_result.enhanced.package_info.version else 'Unknown' }}</td></tr>
+                    <tr><td>Min SDK</td><td>{{ scan_result.enhanced.package_info.min_sdk if scan_result.enhanced.package_info.min_sdk else 'Unknown' }}</td></tr>
+                    <tr><td>Target SDK</td><td>{{ scan_result.enhanced.package_info.target_sdk if scan_result.enhanced.package_info.target_sdk else 'Unknown' }}</td></tr>
+                    <tr><td>Obfuscation</td><td>{{ scan_result.enhanced.obfuscation_score if scan_result.enhanced.obfuscation_score is number else 0 }}</td></tr>
+                    <tr><td>SHA256</td><td style="font-size: 0.7rem;">{{ scan_result.enhanced.package_info.hash[:20] if scan_result.enhanced.package_info.hash else 'N/A' }}...</td></tr>
+                    {% endif %}
+                </table>
             </div>
         </section>
 
-        <!-- BACK BUTTON -->
+        <!-- Back Button -->
         <div class="back-link">
             <a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
         </div>
-
     </main>
 </div>
 
-<!-- CHART.JS SCRIPT (all dynamic from Flask) -->
 <script>
 (function() {
-    // -------------------------------------------------------------
-    // Data passed from Flask (ensure safe numbers)
-    // -------------------------------------------------------------
-    const riskScore = Number({{ scan_result.risk_score | default(0) }});
-    const totalPermissions = Number({{ scan_result.permissions_found | default(0) }});
-    const dangerousPermissions = {{ scan_result.dangerous_permissions | tojson | safe }};  // array
-    const services = Number({{ scan_result.services | default(0) }});
-    const receivers = Number({{ scan_result.receivers | default(0) }});
-    const nativeLibs = Number({{ scan_result.native_libs | default(0) }});
-
-    // For gauge, we want a max that is at least 100 if score > 100? but riskScore 0-100.
-    // We'll set maxRisk = 100 (typical). If riskScore > 100, adjust.
-    const maxRisk = 100;  // you can also do Math.max(riskScore, 100) but assume 0-100.
-
-    // -------------------------------------------------------------
-    // 1. RISK GAUGE (doughnut with two segments: risk and remainder)
-    // -------------------------------------------------------------
+    // ULTIMATE DEFENSIVE JAVASCRIPT - with fallbacks for every value
+    let scanResult;
+    try {
+        scanResult = {{ scan_result|tojson|safe }};
+    } catch(e) {
+        console.error("Failed to parse scan result:", e);
+        scanResult = { risk_score: 0 };
+    }
+    
+    // Helper function to safely get values
+    function safeGet(obj, path, defaultValue = 0) {
+        try {
+            const value = path.split('.').reduce((current, key) => current?.[key], obj);
+            return value !== undefined && value !== null ? value : defaultValue;
+        } catch(e) {
+            return defaultValue;
+        }
+    }
+    
+    // 1. Risk Gauge
     const ctxGauge = document.getElementById('riskGauge')?.getContext('2d');
     if (ctxGauge) {
+        const riskScore = safeGet(scanResult, 'risk_score', 0);
         new Chart(ctxGauge, {
             type: 'doughnut',
             data: {
-                labels: ['Risk', 'Remaining'],
                 datasets: [{
-                    data: [riskScore, Math.max(0, maxRisk - riskScore)],
-                    backgroundColor: ['#dc2626', '#e2eaf3'],
+                    data: [riskScore, 100 - riskScore],
+                    backgroundColor: [
+                        riskScore >= 70 ? '#b91c1c' : 
+                        riskScore >= 30 ? '#fbbf24' : '#059669',
+                        '#e2eaf3'
+                    ],
                     borderWidth: 0,
                     borderRadius: 10
                 }]
@@ -389,25 +629,35 @@
         });
     }
 
-    // -------------------------------------------------------------
-    // 2. PERMISSION COMPOSITION (pie: dangerous vs safe)
-    // -------------------------------------------------------------
-    const dangerousCount = Array.isArray(dangerousPermissions) ? dangerousPermissions.length : 0;
-    const safeCount = Math.max(0, totalPermissions - dangerousCount);
-
-    const ctxPie = document.getElementById('permissionChart')?.getContext('2d');
-    if (ctxPie) {
-        new Chart(ctxPie, {
-            type: 'pie',
+    // 2. Permission Chart
+    const ctxPerm = document.getElementById('permissionChart')?.getContext('2d');
+    if (ctxPerm) {
+        let dangerous = 0;
+        let normal = 0;
+        
+        // Try to get from enhanced first
+        if (scanResult.enhanced?.permissions) {
+            dangerous = safeGet(scanResult, 'enhanced.permissions.dangerous', 0);
+            normal = safeGet(scanResult, 'enhanced.permissions.normal', 0);
+        } else {
+            // Fallback to basic fields
+            dangerous = scanResult.dangerous_permissions?.length || 0;
+            normal = (scanResult.permissions_found || 0) - dangerous;
+        }
+        
+        new Chart(ctxPerm, {
+            type: 'doughnut',
             data: {
-                labels: ['Dangerous Permissions', 'Normal Permissions'],
+                labels: ['Dangerous', 'Normal'],
                 datasets: [{
-                    data: [dangerousCount, safeCount],
+                    data: [dangerous, normal],
                     backgroundColor: ['#b91c1c', '#2563eb'],
-                    borderWidth: 0
+                    borderWidth: 0,
+                    borderRadius: 10
                 }]
             },
             options: {
+                cutout: '60%',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } }
@@ -415,36 +665,29 @@
         });
     }
 
-    // -------------------------------------------------------------
-    // 3. DANGEROUS PERMISSIONS BAR CHART (top 6 if too many)
-    // -------------------------------------------------------------
-    const ctxDanger = document.getElementById('dangerousChart')?.getContext('2d');
-    if (ctxDanger && Array.isArray(dangerousPermissions) && dangerousPermissions.length > 0) {
-        // count frequency (but usually each permission appears once)
-        const permCounts = {};
-        dangerousPermissions.forEach(p => permCounts[p] = (permCounts[p] || 0) + 1);
-        let labels = Object.keys(permCounts);
-        const values = Object.values(permCounts);
-
-        // if too many, slice to first 6 for readability
-        if (labels.length > 6) {
-            labels = labels.slice(0, 6);
-            // values accordingly
+    // 3. Components Chart
+    const ctxComp = document.getElementById('componentsChart')?.getContext('2d');
+    if (ctxComp) {
+        let activities = 0, services = 0, receivers = 0, providers = 0;
+        
+        if (scanResult.enhanced?.components) {
+            activities = safeGet(scanResult, 'enhanced.components.activities', 0);
+            services = safeGet(scanResult, 'enhanced.components.services', 0);
+            receivers = safeGet(scanResult, 'enhanced.components.receivers', 0);
+            providers = safeGet(scanResult, 'enhanced.components.providers', 0);
+        } else {
+            activities = scanResult.activities || 0;
+            services = scanResult.services || 0;
+            receivers = scanResult.receivers || 0;
         }
-        // clean labels: show short form
-        const shortLabels = labels.map(l => {
-            const parts = l.split('.');
-            return parts.pop() || l;
-        });
-
-        new Chart(ctxDanger, {
+        
+        new Chart(ctxComp, {
             type: 'bar',
             data: {
-                labels: shortLabels,
+                labels: ['Activities', 'Services', 'Receivers', 'Providers'],
                 datasets: [{
-                    label: 'occurrences',
-                    data: values.slice(0,6),
-                    backgroundColor: '#b45309',
+                    data: [activities, services, receivers, providers],
+                    backgroundColor: '#2563eb',
                     borderRadius: 6
                 }]
             },
@@ -452,47 +695,57 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { display: false }
+                    },
+                    x: { grid: { display: false } }
+                }
             }
-        });
-    } else if (ctxDanger) {
-        // no dangerous permissions: show empty chart or fallback
-        new Chart(ctxDanger, {
-            type: 'bar',
-            data: { labels: ['none'], datasets: [{ data: [0], backgroundColor: '#a5b4cb' }] },
-            options: { plugins: { legend: { display: false } } }
         });
     }
 
-    // -------------------------------------------------------------
-    // 4. RADAR CHART (attack surface: permissions, services, receivers, native)
-    // -------------------------------------------------------------
-    const ctxRadar = document.getElementById('radarChart')?.getContext('2d');
-    if (ctxRadar) {
-        new Chart(ctxRadar, {
-            type: 'radar',
+    // 4. Files Chart
+    const ctxFiles = document.getElementById('filesChart')?.getContext('2d');
+    if (ctxFiles) {
+        let dex = 0, native = 0, assets = 0;
+        
+        if (scanResult.enhanced?.files) {
+            dex = safeGet(scanResult, 'enhanced.files.dex', 0);
+            native = safeGet(scanResult, 'enhanced.files.native_libs', 0);
+            assets = safeGet(scanResult, 'enhanced.files.assets', 0);
+        } else {
+            native = scanResult.native_libs || 0;
+        }
+        
+        new Chart(ctxFiles, {
+            type: 'bar',
             data: {
-                labels: ['Permissions', 'Services', 'Receivers', 'Native Code'],
+                labels: ['DEX', 'Native', 'Assets'],
                 datasets: [{
-                    label: 'APK surface',
-                    data: [totalPermissions, services, receivers, nativeLibs],
-                    backgroundColor: 'rgba(37,99,235,0.2)',
-                    borderColor: '#1e3a8a',
-                    pointBackgroundColor: '#fbbf24',
-                    pointBorderColor: '#0b1f33',
+                    data: [dex, native, assets],
+                    backgroundColor: '#059669',
+                    borderRadius: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { r: { beginAtZero: true, ticks: { stepSize: 5 } } },
-                plugins: { legend: { display: false } }
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { display: false }
+                    },
+                    x: { grid: { display: false } }
+                }
             }
         });
     }
 })();
 </script>
-
-<!-- Ensure Jinja variables render correctly -->
 </body>
 </html>

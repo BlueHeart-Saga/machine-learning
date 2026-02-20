@@ -1,21 +1,350 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · MalwareLab</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Font Inter (professional) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: #f2f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 1rem;
+        }
+        /* home icon top-right corner */
+        .home-corner {
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            z-index: 10;
+        }
+        .home-corner a {
+            background: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(0,20,50,0.1);
+            color: #1e3a5f;
+            font-size: 1.6rem;
+            transition: 0.2s;
+            border: 1px solid #e2eaf2;
+            text-decoration: none;
+        }
+        .home-corner a:hover {
+            background: #1e3a5f;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* login card – professional */
+        .login-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 30px 60px rgba(0,20,40,0.12);
+            padding: 2.8rem 3rem;
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #e9eef4;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.2rem;
+        }
+        .login-header h2 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            color: #0a2540;
+            letter-spacing: -0.02em;
+        }
+        .login-header p {
+            color: #4a607a;
+            margin-top: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        /* error box (inline) – visible only when error_msg is present */
+        .error-message {
+            background: #ffefef;
+            border-left: 6px solid #dc2626;
+            color: #b91c1c;
+            padding: 1rem 1.2rem;
+            border-radius: 24px;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 500;
+            font-size: 0.98rem;
+        }
+        .error-message i {
+            font-size: 1.3rem;
+        }
+
+        /* form groups */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #1e3a5f;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #f9fcff;
+            border: 1.5px solid #d5e2f0;
+            border-radius: 40px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.15s;
+        }
+        .input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px #2563eb20;
+        }
+        .password-wrapper {
+            position: relative;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .btn-login {
+            background: #1e3a5f;
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 18px rgba(0,40,80,0.15);
+            margin: 1rem 0 1.5rem;
+        }
+        .btn-login:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .register-link {
+            text-align: center;
+            font-weight: 500;
+            color: #2e4a6a;
+        }
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 0.3rem;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* success popup (hidden by default) */
+        .popup-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .popup-card {
+            background: white;
+            max-width: 360px;
+            width: 90%;
+            border-radius: 48px;
+            padding: 2rem 2rem 1.8rem;
+            text-align: center;
+            box-shadow: 0 40px 70px rgba(0,20,40,0.3);
+            border: 1px solid #d9e6f5;
+        }
+        .popup-card i {
+            font-size: 4rem;
+            color: #10b981;
+            background: #e6f7ee;
+            padding: 1rem;
+            border-radius: 60px;
+            margin-bottom: 1rem;
+        }
+        .popup-card h3 {
+            font-size: 1.8rem;
+            color: #0b1e33;
+            margin-bottom: 0.5rem;
+        }
+        .popup-card p {
+            color: #3b5777;
+            margin-bottom: 2rem;
+        }
+        .popup-btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+        .popup-btn:hover {
+            background: #2563eb;
+        }
+
+        .forgot-link {
+            text-align: right;
+            margin-top: -0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .forgot-link a {
+            color: #5b728e;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        .forgot-link a:hover {
+            color: #2563eb;
+        }
+    </style>
 </head>
 <body>
 
-<div class="center-box">
-    <h2>Login</h2>
+    <!-- top corner home icon -->
+    <div class="home-corner">
+        <a href="/home" title="Back to Home"><i class="fas fa-home"></i></a>
+    </div>
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="Enter your email" required>
-        <input type="password" name="password" placeholder="Enter your password" required>
+    <!-- main login card -->
+    <div class="login-card" id="loginCard">
+        <div class="login-header">
+            <h2>Welcome back</h2>
+            <p>Log in to your MalwareLab account</p>
+        </div>
 
-        <button type="submit">Login</button>
-    </form>
-</div>
+        <!-- INLINE ERROR: visible only if error_msg passed from Flask -->
+        {% if error_msg %}
+        <div class="error-message" id="errorBox" style="display: flex;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="errorText">{{ error_msg }}</span>
+        </div>
+        {% else %}
+        <div class="error-message" id="errorBox" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="errorText"></span>
+        </div>
+        {% endif %}
 
+        <!-- login form - submits to same route -->
+        <form method="POST" action="/login" id="loginForm">
+            <!-- CSRF token would go here if using Flask-WTF – you can add if needed -->
+            <div class="input-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" value="{{ request.form.email or '' }}" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <span class="toggle-pw" onclick="togglePassword()">
+                        <i class="far fa-eye" id="toggleIcon"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- <div class="forgot-link">
+                <a href="#">Forgot password?</a>
+            </div> -->
+
+            <button type="submit" class="btn-login"><i class="fas fa-lock" style="margin-right: 0.5rem;"></i> Log in</button>
+
+            <div class="register-link">
+                Don't have an account? <a href="/register">Register now</a>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- SUCCESS POPUP (hidden initially, shown via JavaScript after redirect simulation – but actual redirect happens server-side, so we don't show popup normally. However we keep for AJAX fallback if you'd like; but for standard flow you'll be redirected. 
+    We'll keep it but note: real redirect makes popup unnecessary. We'll use it only for demo if we want to simulate client side; but we adapt to real flow: after successful login, server redirects to dashboard, no popup needed. 
+    For better UX you could use flash messages. 
+    I'll keep the popup hidden and not used in normal flow, but present in case you later want AJAX. -->
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup-card">
+            <i class="fas fa-check-circle"></i>
+            <h3>Success!</h3>
+            <p>You have logged in successfully.<br>Redirecting to dashboard ...</p>
+            <button class="popup-btn" id="gotoDashboardBtn"><i class="fas fa-arrow-right"></i> Go to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword() {
+            const pwInput = document.getElementById('password');
+            const icon = document.getElementById('toggleIcon');
+            if (pwInput.type === 'password') {
+                pwInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                pwInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // (Optional) If you ever want to show popup on successful AJAX login, you can.
+        // But with server-side redirect we don't need it. 
+        // However we keep the popup for possible future enhancement.
+
+        // For demo purposes, you can uncomment to handle if you switch to fetch.
+        // But in this version, we rely on Flask redirect.
+
+        // The error is already handled by Flask via error_msg variable.
+        // No need for client-side validation for empty fields (they are required by HTML5 anyway).
+
+        // Close popup if clicked outside (not used normally)
+        const popupOverlay = document.getElementById('successPopup');
+        popupOverlay.addEventListener('click', function(e) {
+            if (e.target === popupOverlay) {
+                popupOverlay.style.display = 'none';
+            }
+        });
+
+        // optional: if you ever want to manually trigger popup after a hidden redirect, you can.
+        // But in standard flow, the browser will follow the redirect to dashboard.
+    </script>
+
+    <!-- note: home icon links to index route, register link to register route -->
 </body>
 </html>
