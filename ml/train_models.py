@@ -1,7 +1,11 @@
 import pandas as pd
 import joblib
-import time
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -98,7 +102,7 @@ def train_and_evaluate(dataset_path):
     best = max(results, key=lambda x: x["accuracy"])
     best_name = best["model"]
 
-    print("Best model selected:", best_name)
+    logger.info(f"Best model selected: {best_name}")
 
     model_objects = {**trained_models, "Stacking": stack}
 

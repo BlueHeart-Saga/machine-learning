@@ -46,13 +46,18 @@ for model_name, model_path in MODELS.items():
         if os.path.exists(model_path):
             MODEL_OBJECTS[model_name] = joblib.load(model_path)
     except Exception as e:
-        print(f"Failed to load {model_name}: {str(e)}")
+        if logger:
+            logger.error(f"Failed to load {model_name}: {str(e)}")
 
 try:
-    FEATURE_ORDER = joblib.load(FEATURE_ORDER_PATH)
+    if os.path.exists(FEATURE_ORDER_PATH):
+        FEATURE_ORDER = joblib.load(FEATURE_ORDER_PATH)
+    else:
+        FEATURE_ORDER = None
 except Exception as e:
     FEATURE_ORDER = None
-    print("Feature order load failure:", str(e))
+    if logger:
+        logger.error(f"Feature order load failure: {str(e)}")
 
 # Enhanced permission weights
 PERMISSION_WEIGHTS = {
@@ -162,7 +167,8 @@ def analyze_apk(apk_path):
                 probability = float(np.max(MAIN_MODEL.predict_proba(features)))
                 probability = round(probability, 4)
         except Exception as e:
-            print(f"Prediction error: {e}")
+            if logger:
+                logger.error(f"Prediction error: {e}")
             prediction = "error"
 
     # ------------------------------------------------------------
@@ -250,7 +256,8 @@ def analyze_apk(apk_path):
                 ensemble_confidence = float(malware_votes) / float(total_models)
                 ensemble_confidence = round(ensemble_confidence, 4)
         except Exception as e:
-            print(f"Ensemble error: {e}")
+            if logger:
+                logger.error(f"Ensemble error: {e}")
 
     # ------------------------------------------------------------
     # Risk Classification

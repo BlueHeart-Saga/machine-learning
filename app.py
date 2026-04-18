@@ -1,17 +1,18 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from pymongo import MongoClient
 import bcrypt
 import joblib
 import numpy as np
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime  # ✅ Add this import
+from datetime import datetime
+from dotenv import load_dotenv
 
-from ml.train_models import train_and_evaluate
-from ml.apk_analyzer import analyze_apk
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback_secret_key_for_dev_only")
 
 # ---------------- CONFIG ----------------
 
@@ -37,9 +38,11 @@ feature_order = load_feature_order()
 
 # ---------------- MongoDB ----------------
 
-client = MongoClient(
-    "mongodb+srv://Sagasri:srisaga143@box.c7q0mmf.mongodb.net/malware_project?retryWrites=true&w=majority&authSource=admin"
-)
+MONGODB_URI = os.getenv("MONGODB_URI")
+if not MONGODB_URI:
+    raise Exception("MONGODB_URI not set in environment variables.")
+
+client = MongoClient(MONGODB_URI)
 
 db = client["machine_learning"]
 users_collection = db["users"]
@@ -74,10 +77,12 @@ def register():
         password = request.form.get("password")
 
         if not email or not password:
-            return "Missing email or password"
+            flash("Missing email or password", "error")
+            return redirect(url_for("register"))
 
         if users_collection.find_one({"email": email}):
-            return "User already exists"
+            flash("User already exists", "error")
+            return redirect(url_for("register"))
 
         hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
@@ -102,13 +107,15 @@ def login():
         user = users_collection.find_one({"email": email})
 
         if not user:
-            return "User not found"
+            flash("User not found", "error")
+            return redirect(url_for("login"))
 
         if bcrypt.checkpw(password.encode("utf-8"), user["password"]):
             session["user"] = email
             return redirect(url_for("dashboard"))
 
-        return "Invalid password"
+        flash("Invalid password", "error")
+        return redirect(url_for("login"))
 
     return render_template("login.html")
 
@@ -190,10 +197,14 @@ def upload_dataset():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    file = request.files["dataset"]
+    file = request.files.get("dataset")
+    if not file or file.filename == '':
+        flash("No file selected", "warning")
+        return redirect(url_for("dashboard"))
 
-    os.makedirs("uploads", exist_ok=True)
-    dataset_path = os.path.join("uploads", file.filename)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    filename = secure_filename(file.filename)
+    dataset_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(dataset_path)
 
     try:
@@ -207,11 +218,12 @@ def upload_dataset():
             "dataset_results.html",
             user=session["user"],
             metrics=metrics,
-            filename=file.filename
+            filename=filename
         )
 
     except Exception as e:
-        return f"Training Error: {str(e)}"
+        flash(f"Training Error: {str(e)}", "error")
+        return redirect(url_for("dashboard"))
 
 
 # ---------------- APK SCAN ----------------
@@ -222,20 +234,24 @@ def upload_apk():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    file = request.files["apk"]
+    file = request.files.get("apk")
+    if not file or file.filename == '':
+        flash("No APK file selected", "warning")
+        return redirect(url_for("dashboard"))
 
-    os.makedirs("uploads", exist_ok=True)
-    path = os.path.join("uploads", file.filename)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    filename = secure_filename(file.filename)
+    path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(path)
 
     try:
         result = analyze_apk(path)
-        result["filename"] = file.filename
+        result["filename"] = filename
         
         # ✅ Save to scan history
         scan_record = {
             "user": session["user"],
-            "filename": file.filename,
+            "filename": filename,
             "timestamp": datetime.now(),
             "risk_score": result.get("risk_score", 0),
             "risk_level": result.get("risk_level", "Unknown"),
@@ -257,10 +273,13 @@ def upload_apk():
         )
 
     except Exception as e:
-        return f"APK Analysis Error: {str(e)}"
+        flash(f"APK Analysis Error: {str(e)}", "error")
+        return redirect(url_for("dashboard"))
 
 
 # ---------------- RUN ----------------
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+    port = int(os.getenv("PORT", 5000))
+    app.run(debug=debug_mode, port=port)
