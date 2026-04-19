@@ -54,6 +54,10 @@ scan_history_collection = db["scan_history"]  # ✅ Add this collection
 def home():
     return render_template("index.html")
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return redirect(url_for("home"))
+
 
 # ---------------- ABOUT ----------------
 
