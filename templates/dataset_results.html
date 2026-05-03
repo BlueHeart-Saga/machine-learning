@@ -2,510 +2,350 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dataset Analysis Results · Malware Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Training Results | MalwareLab</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome (icons for better UI) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --bg-dark: #030712;
+            --bg-sidebar: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.5);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.08);
+            --success: #10b981;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: #eef3f9;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
             height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* === DASHBOARD LAYOUT (preserved) === */
-        .dashboard {
-            display: flex;
-            width: 1500px;
-            max-width: 98vw;
-            height: 96vh;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 30px 60px -15px rgba(0,20,50,0.3);
             overflow: hidden;
+            margin: 0;
         }
 
-        /* === SIDEBAR (cohesive with dashboard) === */
+        h1, h2, h3, h4, .logo { font-family: 'Outfit', sans-serif; }
+
+        /* SIDEBAR */
         .sidebar {
             width: 280px;
-            background: #0b1f33;
-            color: #d0e2ff;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
+            z-index: 100;
+            height: 100vh;
         }
 
-        .sidebar h2 {
+        .logo {
             font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 2.5rem;
+            font-weight: 800;
             color: white;
-            padding-left: 0.8rem;
-            border-left: 5px solid #fbbf24;
-        }
-
-        .sidebar nav {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            flex: 1;
-        }
-
-        .sidebar nav a {
-            color: #9bb5d4;
             text-decoration: none;
-            padding: 0.9rem 1.2rem;
-            border-radius: 18px;
-            font-weight: 500;
-            transition: 0.2s;
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 3rem;
         }
 
-        .sidebar nav a i {
-            width: 24px;
-            font-size: 1.2rem;
-        }
+        .logo i { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); }
 
-        .sidebar nav a.active {
-            background: #1e3f60;
-            color: white;
-            box-shadow: 0 6px 12px #00000030;
-        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
 
-        .sidebar nav a:hover:not(.active) {
-            background: #162d45;
-            color: #ecf3ff;
-        }
-
-        .sidebar nav a.logout {
-            color: #f9a8a8;
-            margin-top: auto;
-        }
-        .sidebar nav a.logout:hover {
-            background: #3f2330;
-            color: #ffbebe;
-        }
-
-        /* === MAIN PANEL (scrollable) === */
-        .main {
-            flex: 1;
-            background: #f9fcff;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            padding-bottom: 1rem;
-        }
-
-        .topbar {
-            background: white;
-            padding: 1.3rem 2rem;
-            border-bottom: 1px solid #e2ecf9;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-        .topbar h3 {
-            font-size: 1.7rem;
-            color: #0b2b4f;
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            padding: 0.85rem 1.2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .page-header {
-            padding: 1.8rem 2rem 0.2rem 2rem;
-            background: #f3f8ff;
-            border-bottom: 1px solid #dbe6f2;
-        }
-        .page-header p {
-            margin: 0.3rem 0;
-            color: #1e3f60;
-            font-size: 1.1rem;
-        }
-        .page-header p strong {
-            color: #0b2b4f;
-            min-width: 90px;
-            display: inline-block;
+        .nav-item:hover, .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        /* === RESULTS GRID (four cards) === */
+        .nav-item.logout { margin-top: auto; color: #ef4444; }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            height: 100vh;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 40%);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 { font-size: 2rem; font-weight: 700; }
+
+        /* RESULTS GRID */
         .results-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1.8rem;
-            padding: 2rem;
+            gap: 2rem;
         }
 
-        .results-card {
-            background: white;
-            border-radius: 3px;
-            box-shadow: 0 15px 30px -8px rgba(1,37,78,0.1);
-            padding: 1.6rem 1.6rem 1.8rem 1.6rem;
-            border: 1px solid #ddebf5;
-            transition: 0.15s;
-            display: flex;
-            flex-direction: column;
-        }
-        .results-card:hover {
-            box-shadow: 0 22px 40px -10px #1e3a5f40;
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
         }
 
-        .results-card h4 {
-            font-size: 1.5rem;
-            color: #163a5e;
-            margin-bottom: 1rem;
-            border-left: 6px solid #fbbf24;
-            padding-left: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .card h3 { font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .card h3 i { color: var(--primary); }
 
-        .chart-container {
-            position: relative;
-            height: 240px;
-            width: 100%;
-            margin-top: 0.5rem;
-        }
+        .chart-container { position: relative; height: 300px; width: 100%; }
 
-        /* === METRICS TABLE (refined) === */
-        .table-wrapper {
-            padding: 0 2rem 1rem 2rem;
-        }
+        /* TABLE */
+        .table-container { grid-column: span 2; }
         .metrics-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -8px #0b1f331c;
-            border: 1px solid #d1e2f2;
+            margin-top: 1rem;
         }
         .metrics-table th {
-            background: #0b2b4f;
-            color: white;
-            font-weight: 600;
-            padding: 1rem 1.2rem;
             text-align: left;
+            padding: 1.2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
         }
         .metrics-table td {
-            padding: 1rem 1.2rem;
-            border-bottom: 1px solid #ddeaf5;
-            color: #1e3f5c;
+            padding: 1.2rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
         }
-        .metrics-table tr:last-child td {
-            border-bottom: none;
-        }
-        .metrics-table tbody tr:hover {
-            background: #ecf5ff;
-        }
+        .metrics-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .metrics-table .model-name { color: white; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .metrics-table .model-name i { color: var(--primary); }
+        .metrics-table .score { color: var(--success); font-family: 'Outfit'; font-size: 1.1rem; }
 
-        /* back button */
-        .actions {
-            padding: 0.5rem 2rem 2rem 2rem;
-        }
-        .secondary-btn {
-            background: white;
-            border: 2px solid #1e3f60;
-            color: #1e3f60;
-            font-weight: 600;
-            padding: 0.8rem 2.5rem;
-            border-radius: 40px;
-            text-decoration: none;
+        .btn-back {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-        .secondary-btn:hover {
-            background: #1e3f60;
-            color: white;
+            gap: 10px;
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 100px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
         }
 
-        /* loading overlay (for completeness, shown while data loads) */
-        .loading-overlay {
-            position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(11,31,51,0.6);
-            backdrop-filter: blur(5px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .loading-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 60px;
-            text-align: center;
-        }
-        .spinner {
-            border: 6px solid #e9f0fc;
-            border-top: 6px solid #0b2b4f;
-            width: 70px; height: 70px;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-            margin: 0 auto 1.2rem;
-        }
-        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+        .btn-back:hover { color: white; border-color: var(--text-muted); }
 
-        /* responsive */
-        @media (max-width: 1100px) {
+        @media (max-width: 1024px) {
             .results-grid { grid-template-columns: 1fr; }
+            .table-container { grid-column: span 1; }
         }
-        @media (max-width: 800px) {
-            .dashboard { flex-direction: column; }
-            .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 1rem; }
-            .sidebar h2 { margin-bottom: 0; margin-right: 1rem; }
-            .sidebar nav { flex-direction: row; flex-wrap: wrap; }
-        }
+
+        /* TOAST SYSTEM */
+        .toast-container { position: fixed; top: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 1rem; pointer-events: none; }
+        .toast { pointer-events: auto; width: 320px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); transform: translateX(120%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; border-left: 4px solid var(--primary); }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .toast-content { flex: 1; min-width: 0; }
+        .toast-title { font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 2px; font-family: 'Outfit', sans-serif; }
+        .toast-message { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
+        .toast-success { border-left-color: #10b981; }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-
-    <!-- SIDEBAR (active: Dataset Results) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-        <h2><i class="fas fa-Malware-virus" style="margin-right: 8px;"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
-        <nav>
-            <a href="/dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <!-- <a href="#" class="active"><i class="fas fa-table"></i> Dataset Results</a> -->
-            <!-- <a href="#"><i class="fas fa-chart-line"></i> Model Metrics</a> -->
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="/" class="logo">
+            <i class="fas fa-shield-virus"></i> <span>MalwareLab</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-columns"></i> <span>Overview</span>
+            </a>
+            <a href="/history" class="nav-item">
+                <i class="fas fa-clock-rotate-left"></i> <span>Scan History</span>
+            </a>
+            <a href="/logout" class="nav-item logout">
+                <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
+            </a>
         </nav>
     </aside>
 
-    <!-- MAIN PANEL (scrolls) -->
-    <main class="main">
-
-        <!-- HEADER -->
-        <header class="topbar">
-            <h3><i class="fas fa-file-csv" style="color:#2563eb;"></i> Dataset Evaluation Report</h3>
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="header">
+            <h1>Training Report</h1>
+            <div style="text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Dataset</p>
+                <p style="font-weight: 700;">{{ filename }}</p>
+            </div>
         </header>
 
-        <!-- DATASET INFO (dynamic from Flask) -->
-        <section class="page-header">
-            <p><strong><i class="fas fa-user-circle"></i> User:</strong> {{ user }}</p>
-            <p><strong><i class="fas fa-database"></i> Dataset:</strong> {{ filename }}</p>
-        </section>
-
-        <!-- CHART GRID (4 cards, each with a canvas) -->
         <div class="results-grid">
-
-            <!-- 1. ACCURACY bar chart -->
-            <div class="results-card">
-                <h4><i class="fas fa-bullseye" style="color:#1e4b7a;"></i> Accuracy Comparison</h4>
+            <!-- Accuracy Chart -->
+            <div class="card">
+                <h3><i class="fas fa-bullseye"></i> Accuracy Comparison</h3>
                 <div class="chart-container">
                     <canvas id="accuracyChart"></canvas>
                 </div>
             </div>
 
-            <!-- 2. MULTI-METRIC bar chart (precision, recall, f1) -->
-            <div class="results-card">
-                <h4><i class="fas fa-chart-bar" style="color:#1e4b7a;"></i> Multi-Metric Performance</h4>
-                <div class="chart-container">
-                    <canvas id="metricChart"></canvas>
-                </div>
-            </div>
-
-            <!-- 3. TRAINING TIME (line) -->
-            <div class="results-card">
-                <h4><i class="fas fa-clock" style="color:#1e4b7a;"></i> Training Time (Efficiency)</h4>
+            <!-- Training Time Chart -->
+            <div class="card">
+                <h3><i class="fas fa-bolt-lightning"></i> Model Efficiency</h3>
                 <div class="chart-container">
                     <canvas id="timeChart"></canvas>
                 </div>
             </div>
 
-            <!-- 4. RADAR (model capability) -->
-            <div class="results-card">
-                <h4><i class="fas fa-radar" style="color:#1e4b7a;"></i> Model Capability Radar</h4>
-                <div class="chart-container">
-                    <canvas id="radarChart"></canvas>
-                </div>
+            <!-- Metrics Table -->
+            <div class="card table-container">
+                <h3><i class="fas fa-list-check"></i> Detailed Performance Metrics</h3>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1 Score</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in metrics %}
+                        <tr>
+                            <td class="model-name"><i class="fas fa-robot"></i> {{ m.model }}</td>
+                            <td class="score">{{ m.accuracy }}</td>
+                            <td>{{ m.precision }}</td>
+                            <td>{{ m.recall }}</td>
+                            <td>{{ m.f1 }}</td>
+                            <td style="color: var(--text-muted);">{{ m.time }}s</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- DETAILED TABLE (exactly as original, but enhanced style) -->
-        <div class="table-wrapper">
-            <h4 style="margin-bottom:1rem; margin-left:0.2rem; font-size:1.6rem; color:#163a5e;"><i class="fas fa-list-ul"></i> Detailed Metrics</h4>
-            <table class="metrics-table">
-                <thead>
-                    <tr>
-                        <th>Model</th>
-                        <th>Accuracy</th>
-                        <th>Precision</th>
-                        <th>Recall</th>
-                        <th>F1 Score</th>
-                        <th>Time (s)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for m in metrics %}
-                    <tr>
-                        <td><i class="fas fa-robot" style="margin-right:8px; color:#2563eb;"></i> {{ m.model }}</td>
-                        <td><strong>{{ m.accuracy }}</strong></td>
-                        <td>{{ m.precision }}</td>
-                        <td>{{ m.recall }}</td>
-                        <td>{{ m.f1 }}</td>
-                        <td>{{ m.time }}s</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- ACTIONS (back button) -->
-        <section class="actions">
-            <a href="/dashboard" class="secondary-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-        </section>
-
+        <a href="/dashboard" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Return to Dashboard
+        </a>
     </main>
-</div>
 
-<!-- optional loading overlay (can be triggered via JS if needed, but here just for show - not interfering) -->
-<div class="loading-overlay" id="loadingOverlay" style="display: none;">
-    <div class="loading-card">
-        <div class="spinner"></div>
-        <p style="font-size:1.5rem;">Rendering charts</p>
-        <span style="color:#556b83;">please wait...</span>
-    </div>
-</div>
+    <script>
+        const metricsData = {{ metrics | tojson }};
+        const labels = metricsData.map(m => m.model);
+        const accuracy = metricsData.map(m => parseFloat(m.accuracy));
+        const times = metricsData.map(m => parseFloat(m.time));
 
-<!-- CHART.JS SCRIPT (integrated with data from Flask) -->
-<script>
-    (function() {
-        // -----------------------------------------------------------------
-        // Extract metrics from Jinja (same as original, but with robust check)
-        // -----------------------------------------------------------------
-        const metricsData = {{ metrics | tojson }};   // list of objects
-
-        // If metricsData is empty or malformed, we show empty charts or fallback
-        if (!metricsData || metricsData.length === 0) {
-            document.querySelector('.results-grid').innerHTML = '<div style="padding:3rem;text-align:center;">No metrics available.</div>';
-            return;
-        }
-
-        const labels = metricsData.map(m => m.model || 'unknown');
-        const accuracy  = metricsData.map(m => parseFloat(m.accuracy) || 0);
-        const precision = metricsData.map(m => parseFloat(m.precision) || 0);
-        const recall    = metricsData.map(m => parseFloat(m.recall) || 0);
-        const f1        = metricsData.map(m => parseFloat(m.f1) || 0);
-        const times     = metricsData.map(m => parseFloat(m.time) || 0);
-
-        // ----- 1. ACCURACY BAR CHART (like original, but with options) -----
-        new Chart(document.getElementById("accuracyChart"), {
-            type: "bar",
+        // Accuracy Chart
+        new Chart(document.getElementById('accuracyChart'), {
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "Accuracy",
+                    label: 'Accuracy Score',
                     data: accuracy,
-                    backgroundColor: "rgba(37, 99, 235, 0.7)",
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
                     borderRadius: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 1.0, grid: { color: '#dbe7f4' } } },
+                scales: {
+                    y: { beginAtZero: true, max: 1.0, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                },
                 plugins: { legend: { display: false } }
             }
         });
 
-        // ----- 2. MULTI-METRIC (precision, recall, f1) grouped bar -----
-        new Chart(document.getElementById("metricChart"), {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: "Precision", data: precision, backgroundColor: "#1e7b4f", borderRadius: 6 },
-                    { label: "Recall", data: recall, backgroundColor: "#b85e00", borderRadius: 6 },
-                    { label: "F1 Score", data: f1, backgroundColor: "#9333ea", borderRadius: 6 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 1.0 } },
-                plugins: { legend: { position: 'top', labels: { boxWidth:12 } } }
-            }
-        });
-
-        // ----- 3. TIME CHART (line) -----
-        new Chart(document.getElementById("timeChart"), {
-            type: "line",
+        // Efficiency Chart
+        new Chart(document.getElementById('timeChart'), {
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "Time (s)",
+                    label: 'Training Time (s)',
                     data: times,
-                    borderColor: "#d97706",
-                    backgroundColor: "rgba(217,119,6,0.1)",
-                    tension: 0.2,
-                    pointBackgroundColor: "#b45309",
-                    pointRadius: 5
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, title: { display: true, text: 'seconds' } } }
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                },
+                plugins: { legend: { display: false } }
             }
         });
-
-        // ----- 4. RADAR CHART (accuracy, precision, recall, f1) for each model -----
-        // Build datasets for each model
-        const radarDatasets = metricsData.map((m, idx) => {
-            const colors = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0d9488'];
-            return {
-                label: m.model,
-                data: [
-                    parseFloat(m.accuracy) || 0,
-                    parseFloat(m.precision) || 0,
-                    parseFloat(m.recall) || 0,
-                    parseFloat(m.f1) || 0
-                ],
-                borderColor: colors[idx % colors.length],
-                backgroundColor: colors[idx % colors.length] + '20',
-                pointBackgroundColor: colors[idx % colors.length],
-                fill: true,
-                tension: 0.1
-            };
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        toastManager.show("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         });
-
-        new Chart(document.getElementById("radarChart"), {
-            type: "radar",
-            data: {
-                labels: ["Accuracy", "Precision", "Recall", "F1"],
-                datasets: radarDatasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { r: { beginAtZero: true, max: 1, ticks: { stepSize: 0.2 } } },
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-
-        // optional: if you want to show loading overlay briefly while charts init, but they are fast.
-        // We'll keep overlay hidden. For demonstration, you could show then hide, but not needed.
-        // but to simulate professional touch, hide overlay if visible (but it's hidden by default)
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
-    })();
-</script>
-
-<!-- ensure Jinja variables render -->
+    </script>
 </body>
 </html>

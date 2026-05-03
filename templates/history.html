@@ -2,265 +2,383 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Scan History · Malware Detection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History | MalwareLab</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --bg-dark: #030712;
+            --bg-sidebar: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.5);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.08);
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: #f0f4f8;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
             height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dashboard {
-            display: flex;
-            width: 1400px;
-            max-width: 98vw;
-            height: 95vh;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             overflow: hidden;
         }
 
+        h1, h2, h3, h4, .logo { font-family: 'Outfit', sans-serif; }
+
+        /* SIDEBAR */
         .sidebar {
             width: 280px;
-            background: #0b1f33;
-            color: #e0edff;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
+            z-index: 100;
+            height: 100vh;
         }
 
-        .sidebar h2 {
-            font-size: 1.7rem;
-            font-weight: 600;
-            margin-bottom: 2.5rem;
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
             color: white;
-            border-left: 4px solid #fbbf24;
-            padding-left: 1rem;
-        }
-
-        .sidebar nav {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            flex: 1;
-        }
-
-        .sidebar nav a {
-            color: #b0c8e0;
             text-decoration: none;
-            padding: 0.9rem 1.2rem;
-            border-radius: 16px;
-            font-weight: 500;
-            transition: 0.2s;
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 3rem;
         }
 
-        .sidebar nav a i { width: 24px; font-size: 1.2rem; }
-        .sidebar nav a.active { background: #1e3a5f; color: white; }
-        .sidebar nav a:hover:not(.active) { background: #1a2f46; color: #d9ecff; }
-        .sidebar nav a.logout { margin-top: auto; color: #fca5a5; }
-        .sidebar nav a.logout:hover { background: #3b1e2e; color: #ffb3b3; }
+        .logo i { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); }
 
-        .main {
-            flex: 1;
-            background: #f9fcff;
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+
+        .nav-item {
             display: flex;
-            flex-direction: column;
-            overflow-y: auto;
+            align-items: center;
+            gap: 12px;
+            padding: 0.85rem 1.2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .topbar {
-            background: white;
-            padding: 1.2rem 2rem;
-            border-bottom: 1px solid #e5ecf3;
-        }
-        .topbar h3 {
-            font-weight: 600;
-            color: #0b2b4f;
-            font-size: 1.4rem;
+        .nav-item i { font-size: 1.1rem; width: 24px; }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .page-header {
-            padding: 2rem 2rem 1rem 2rem;
-        }
-        .page-header h4 {
-            font-size: 1.9rem;
-            color: #0f2a44;
-            font-weight: 600;
-        }
-        .page-header p {
-            color: #4b5f77;
-            margin-top: 0.3rem;
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            font-weight: 700;
         }
 
-        .history-container {
-            padding: 0 2rem 2rem 2rem;
+        .nav-item.logout { margin-top: auto; color: #ef4444; }
+        .nav-item.logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+        /* MAIN CONTENT */
+        .main-content {
             flex: 1;
+            height: 100vh;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 40%);
         }
 
-        .history-table {
-            background: white;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 { font-size: 2rem; font-weight: 700; }
+
+        /* TABLE */
+        .table-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
             border-radius: 24px;
-            box-shadow: 0 8px 20px rgba(0,20,40,0.06);
-            border: 1px solid #dde7f0;
+            padding: 1.5rem;
             overflow: hidden;
         }
 
-        table {
+        .history-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        th {
-            background: #f0f7ff;
-            color: #1e3f60;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 1.2rem 1rem;
+        .history-table th {
             text-align: left;
-            border-bottom: 2px solid #cde0f0;
-        }
-
-        td {
             padding: 1rem;
-            border-bottom: 1px solid #e5eef8;
-            color: #1e3a5f;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
         }
 
-        tr:hover {
-            background: #f5faff;
+        .history-table td {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
+
+        .history-table tr:hover td { background: rgba(255,255,255,0.02); }
 
         .risk-badge {
-            padding: 0.3rem 1rem;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
-        .risk-high { background: #fee2e2; color: #b91c1c; }
-        .risk-medium { background: #fef3c7; color: #b45309; }
-        .risk-low { background: #dbeafe; color: #1e3a8a; }
 
-        .pred-malware { color: #b91c1c; font-weight: 600; }
-        .pred-benign { color: #059669; font-weight: 600; }
+        .risk-low { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .risk-medium { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .risk-high { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-        .no-history {
+        .pred-tag {
+            font-weight: 800;
+            font-family: 'Outfit';
+        }
+        .pred-malware { color: var(--danger); }
+        .pred-benign { color: var(--success); }
+
+        .empty-state {
             text-align: center;
-            padding: 3rem;
-            color: #6b7f99;
+            padding: 5rem 2rem;
+            color: var(--text-muted);
         }
 
-        .footer {
-            padding: 1.2rem 2rem;
-            border-top: 1px solid #deecfb;
-            color: #4b627c;
-            margin-top: auto;
-            background: #f2f9ff;
+        .empty-state i { font-size: 3rem; margin-bottom: 1.5rem; opacity: 0.5; }
+
+        /* TABS */
+        .history-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem;
+            border-radius: 16px;
+            width: fit-content;
         }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover { color: white; background: rgba(255,255,255,0.05); }
+        .tab-btn.active {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .history-section { display: none; }
+        .history-section.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .empty-state i { font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.2; }
+
+        @media (max-width: 1024px) {
+            .history-table th:nth-child(5), .history-table td:nth-child(5) { display: none; }
+        }
+
+        /* TOAST SYSTEM */
+        .toast-container { position: fixed; top: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 1rem; pointer-events: none; }
+        .toast { pointer-events: auto; width: 320px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); transform: translateX(120%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; border-left: 4px solid var(--primary); }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .toast-content { flex: 1; min-width: 0; }
+        .toast-title { font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 2px; font-family: 'Outfit', sans-serif; }
+        .toast-message { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
+        .toast-success { border-left-color: #10b981; }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
     </style>
 </head>
 <body>
-<div class="dashboard">
+
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-        <h2><i class="fas fa-Malware-halved"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
-        <nav>
-            <a href="/dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="/history" class="active"><i class="fas fa-history"></i> Scan History</a>
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="/" class="logo">
+            <i class="fas fa-shield-virus"></i> <span>MalwareLab</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-columns"></i> <span>Overview</span>
+            </a>
+            <a href="/history" class="nav-item active">
+                <i class="fas fa-clock-rotate-left"></i> <span>Scan History</span>
+            </a>
+            <a href="/logout" class="nav-item logout">
+                <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
+            </a>
         </nav>
     </aside>
 
-    <main class="main">
-        <header class="topbar">
-            <h3><i class="fas fa-history"></i> Scan History - {{ user }}</h3>
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="header">
+            <h1>Security Logs</h1>
+            <div style="text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Total Activity</p>
+                <p style="font-weight: 700;">{{ (scans|length if scans else 0) + (trainings|length if trainings else 0) }} Total Records</p>
+            </div>
         </header>
 
-        <section class="page-header">
-            <h4>Previous APK Scans</h4>
-            <p>View results from your previous scans</p>
-        </section>
+        <div class="history-tabs">
+            <div class="tab-btn active" onclick="switchTab('apk')"><i class="fas fa-bug"></i> APK Scans</div>
+            <div class="tab-btn" onclick="switchTab('dataset')"><i class="fas fa-database"></i> Training History</div>
+        </div>
 
-        <section class="history-container">
-            <div class="history-table">
+        <!-- APK SCAN SECTION -->
+        <div id="apkSection" class="history-section active">
+            <div class="table-card">
                 {% if scans and scans|length > 0 %}
-                <table>
+                <table class="history-table">
                     <thead>
                         <tr>
                             <th>Date & Time</th>
                             <th>Filename</th>
-                            <th>Risk Score</th>
                             <th>Risk Level</th>
                             <th>Prediction</th>
                             <th>Permissions</th>
+                            <th>Score</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for scan in scans %}
                         <tr>
+                            <td style="color: var(--text-muted);">{{ scan.timestamp }}</td>
+                            <td style="font-weight: 700; color: white;">{{ scan.filename }}</td>
                             <td>
-                                {% if scan.timestamp %}
-                                    {% if scan.timestamp is string %}
-                                        {{ scan.timestamp }}
-                                    {% else %}
-                                        {{ scan.timestamp.strftime('%Y-%m-%d %H:%M') }}
-                                    {% endif %}
-                                {% else %}
-                                    N/A
-                                {% endif %}
+                                {% set risk_class = scan.risk_level.split()[0].lower() if scan.risk_level and scan.risk_level.split() else 'low' %}
+                                <span class="risk-badge risk-{{ risk_class }}">
+                                    {{ scan.risk_level or 'Unknown' }}
+                                </span>
                             </td>
-                            <td>{{ scan.filename }}</td>
-                            <td>{{ scan.risk_score }}/100</td>
-                            <td>
-                                {% if scan.risk_level %}
-                                    {% set risk_class = scan.risk_level.split()[0].lower() if scan.risk_level.split() else 'low' %}
-                                    <span class="risk-badge risk-{{ risk_class }}">
-                                        {{ scan.risk_level }}
-                                    </span>
-                                {% else %}
-                                    <span class="risk-badge risk-low">Unknown</span>
-                                {% endif %}
-                            </td>
-                            <td class="{% if scan.prediction == 'malware' %}pred-malware{% else %}pred-benign{% endif %}">
+                            <td class="pred-tag {% if scan.prediction == 'malware' %}pred-malware{% else %}pred-benign{% endif %}">
                                 {{ scan.prediction|upper if scan.prediction else 'UNKNOWN' }}
                             </td>
-                            <td>{{ scan.permissions_count if scan.permissions_count else 0 }}</td>
+                            <td>{{ scan.permissions_count or 0 }} Found</td>
+                            <td style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: white;">{{ scan.risk_score }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
                 {% else %}
-                <div class="no-history">
-                    <i class="fas fa-history" style="font-size: 3rem; color: #b9d0e7; margin-bottom: 1rem;"></i>
-                    <h3>No scan history yet</h3>
-                    <p>Upload your first APK file to get started</p>
-                    <a href="/dashboard" style="color: #2563eb; text-decoration: none; margin-top: 1rem; display: inline-block;">
-                        <i class="fas fa-arrow-left"></i> Back to Dashboard
-                    </a>
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No APK analysis records</h3>
+                    <p>Start scanning APKs to build your security history.</p>
                 </div>
                 {% endif %}
             </div>
-        </section>
+        </div>
 
-        <footer class="footer">
-            <p><i class="fas fa-robot"></i> AI-Powered Android Malware Detection System</p>
-        </footer>
+        <!-- TRAINING LOGS SECTION -->
+        <div id="datasetSection" class="history-section">
+            <div class="table-card">
+                {% if trainings and trainings|length > 0 %}
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Dataset File</th>
+                            <th>Best Model</th>
+                            <th>Best Accuracy</th>
+                            <th>Models Trained</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in trainings %}
+                        <tr>
+                            <td style="color: var(--text-muted);">{{ t.timestamp }}</td>
+                            <td style="font-weight: 700; color: white;">{{ t.filename }}</td>
+                            <td><span style="color: var(--primary); font-weight: 600;">{{ t.best_model }}</span></td>
+                            <td style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: var(--success);">{{ t.best_accuracy }}</td>
+                            <td>{{ t.metrics|length if t.metrics else 0 }} Algorithms</td>
+                            <td><span class="risk-badge risk-low">Completed</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-brain"></i>
+                    <h3>No training records found</h3>
+                    <p>Upload a dataset to retrain and improve your detection models.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </main>
-</div>
+
+    <script>
+        function switchTab(type) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Update sections
+            document.querySelectorAll('.history-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(type + 'Section').classList.add('active');
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        toastManager.show("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+    </script>
 </body>
 </html>

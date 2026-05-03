@@ -1,6 +1,7 @@
 import os
 import re
 import numpy as np
+import pandas as pd
 import joblib
 import hashlib
 from collections import Counter
@@ -160,7 +161,7 @@ def analyze_apk(apk_path):
                 if perm in vector_map:
                     vector_map[perm] = 1
             
-            features = np.array([[vector_map[f] for f in FEATURE_ORDER]])
+            features = pd.DataFrame([[vector_map[f] for f in FEATURE_ORDER]], columns=FEATURE_ORDER)
             prediction = str(MAIN_MODEL.predict(features)[0])
             
             if hasattr(MAIN_MODEL, "predict_proba"):
@@ -194,21 +195,48 @@ def analyze_apk(apk_path):
 
     # Suspicious string scanning
     suspicious_hits = 0
-    for f in files:
-        lower = f.lower()
-        if any(pat in lower for pat in ["dex", "payload", "shell"]):
-            suspicious_hits += 1
-    risk_score += float(suspicious_hits) * 0.5
+    detected_strings = []
+    
+    # Check for sensitive strings
+    sensitive_patterns = {
+        "Crypto/Base64": r"Base64|AES|DES|RSA",
+        "Networking": r"http://|https://|ftp://|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
+        "Shell/Execution": r"chmod|chown|su |/system/bin/sh|/system/xbin/su",
+        "Information Gathering": r"getLine1Number|getDeviceId|getSubscriberId|getSimSerialNumber"
+    }
+
+    raw_files_text = " ".join(files).lower()
+    for category, pattern in sensitive_patterns.items():
+        matches = re.findall(pattern, raw_files_text)
+        if matches:
+            suspicious_hits += len(set(matches))
+            detected_strings.append({"category": category, "matches": list(set(matches))[:3]})
+
+    risk_score += float(min(suspicious_hits, 10)) * 0.6
 
     # URLs detection
-    raw = " ".join(files).lower()
-    urls_found = len(re.findall(r"http[s]?://", raw))
+    urls_found = len(re.findall(r"https?://", raw_files_text))
     risk_score += float(min(urls_found, 5)) * 0.4
+
+    # Intent analysis (Suspicious Entry Points)
+    suspicious_intents = []
+    critical_intents = [
+        "android.intent.action.BOOT_COMPLETED",
+        "android.provider.Telephony.SMS_RECEIVED",
+        "android.intent.action.PHONE_STATE",
+        "android.intent.action.PACKAGE_ADDED",
+        "android.intent.action.PACKAGE_REMOVED"
+    ]
+    
+    for intent in critical_intents:
+        if intent in str(receivers):
+            suspicious_intents.append(intent.split('.')[-1])
+            risk_score += 3.0
 
     # Obfuscation indicator
     short_names = sum(1 for a in activities if len(a.split(".")[-1]) <= 2)
     if short_names > 5:
-        risk_score += 2.0
+        risk_score += 3.0
 
     # ------------------------------------------------------------
     # Get predictions from multiple models (enhanced)
@@ -224,14 +252,14 @@ def analyze_apk(apk_path):
                 if perm in vector_map:
                     vector_map[perm] = 1
             
-            feature_vector = np.array([[vector_map[f] for f in FEATURE_ORDER]])
+            features_df = pd.DataFrame([[vector_map[f] for f in FEATURE_ORDER]], columns=FEATURE_ORDER)
             
             for model_name, model in MODEL_OBJECTS.items():
                 try:
-                    pred = str(model.predict(feature_vector)[0])
+                    pred = str(model.predict(features_df)[0])
                     proba = None
                     if hasattr(model, 'predict_proba'):
-                        proba = float(np.max(model.predict_proba(feature_vector)))
+                        proba = float(np.max(model.predict_proba(features_df)))
                         proba = round(proba, 4)
                     
                     model_predictions[model_name] = {
@@ -260,17 +288,23 @@ def analyze_apk(apk_path):
                 logger.error(f"Ensemble error: {e}")
 
     # ------------------------------------------------------------
-    # Risk Classification
+    # Risk Classification & Grade
     # ------------------------------------------------------------
-    if risk_score >= 18:
+    if risk_score >= 25:
+        risk_level = "Critical Risk"
+        security_grade = "F"
+    elif risk_score >= 15:
         risk_level = "High Risk"
+        security_grade = "D"
     elif risk_score >= 8:
         risk_level = "Medium Risk"
+        security_grade = "B"
     else:
         risk_level = "Low Risk"
+        security_grade = "A"
 
     # Extract URLs for display
-    urls_list = re.findall(r"https?://[^\s]+", raw)[:10]
+    urls_list = re.findall(r"https?://[^\s]+", raw_files_text)[:10]
 
     # ------------------------------------------------------------
     # COMPATIBLE RETURN STRUCTURE (with enhanced fields)
@@ -281,6 +315,7 @@ def analyze_apk(apk_path):
         "prediction": prediction,
         "risk_score": round(float(risk_score), 2),
         "risk_level": risk_level,
+        "security_grade": security_grade,
         "confidence": probability if probability is not None else "N/A",
         "permissions_found": len(permissions),
         "activities": len(activities),
@@ -291,6 +326,11 @@ def analyze_apk(apk_path):
         
         # Enhanced fields (for new template)
         "enhanced": {
+            "intelligence": {
+                "suspicious_strings": detected_strings,
+                "suspicious_intents": suspicious_intents,
+                "threat_level": risk_level
+            },
             "package_info": {
                 "name": str(package_name),
                 "version": str(version_name),
@@ -303,7 +343,8 @@ def analyze_apk(apk_path):
                 "dangerous": len(detected_dangerous),
                 "normal": max(0, len(permissions) - len(detected_dangerous)),
                 "signature": 0,
-                "dangerous_list": detected_dangerous[:20]
+                "dangerous_list": detected_dangerous[:50],
+                "normal_list": [p for p in permissions if p not in detected_dangerous][:50]
             },
             "components": {
                 "activities": len(activities),

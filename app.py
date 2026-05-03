@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+import pandas as pd
 from pymongo import MongoClient
+import gridfs
 import bcrypt
 import joblib
 import numpy as np
@@ -7,6 +9,8 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from dotenv import load_dotenv
+from ml.train_models import train_and_evaluate
+from ml.apk_analyzer import analyze_apk
 
 # Load environment variables
 load_dotenv()
@@ -45,8 +49,10 @@ if not MONGODB_URI:
 client = MongoClient(MONGODB_URI)
 
 db = client["machine_learning"]
+fs = gridfs.GridFS(db)
 users_collection = db["users"]
-scan_history_collection = db["scan_history"]  # ✅ Add this collection
+scan_history_collection = db["scan_history"]
+training_history_collection = db["training_history"] # ✅ New collection for model history
 
 # ---------------- ROUTES ----------------
 
@@ -140,24 +146,36 @@ def history():
         return redirect(url_for("login"))
     
     try:
-        # Get scan history for current user, sorted by newest first
+        # 1. Get APK scan history
         scans = list(scan_history_collection.find(
             {"user": session["user"]}
         ).sort("timestamp", -1).limit(50))
         
-        # Convert ObjectId to string for JSON serialization
         for scan in scans:
             scan["_id"] = str(scan["_id"])
-            # Convert datetime to string if needed
             if hasattr(scan.get("timestamp"), 'strftime'):
-                scan["timestamp"] = scan["timestamp"].strftime('%Y-%m-%d %H:%M:%S')
+                scan["timestamp"] = scan["timestamp"].strftime('%Y-%m-%d %H:%M')
+
+        # 2. Get Dataset training history
+        trainings = list(training_history_collection.find(
+            {"user": session["user"]}
+        ).sort("timestamp", -1).limit(50))
+
+        for t in trainings:
+            t["_id"] = str(t["_id"])
+            if hasattr(t.get("timestamp"), 'strftime'):
+                t["timestamp"] = t["timestamp"].strftime('%Y-%m-%d %H:%M')
         
-        return render_template("history.html", user=session["user"], scans=scans)
+        return render_template(
+            "history.html", 
+            user=session["user"], 
+            scans=scans, 
+            trainings=trainings
+        )
     
     except Exception as e:
         print(f"History error: {e}")
-        # Return empty history if there's an error
-        return render_template("history.html", user=session["user"], scans=[])
+        return render_template("history.html", user=session["user"], scans=[], trainings=[])
 
 # ---------------- LOGOUT ----------------
 
@@ -177,7 +195,7 @@ def predict():
 
     try:
         vector = [data.get(f, 0) for f in feature_order]
-        features = np.array([vector])
+        features = pd.DataFrame([vector], columns=feature_order)
 
         prediction = model.predict(features)[0]
 
@@ -197,7 +215,6 @@ def predict():
 
 @app.route("/upload_dataset", methods=["POST"])
 def upload_dataset():
-
     if "user" not in session:
         return redirect(url_for("login"))
 
@@ -206,23 +223,47 @@ def upload_dataset():
         flash("No file selected", "warning")
         return redirect(url_for("dashboard"))
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    filename = secure_filename(file.filename)
-    dataset_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(dataset_path)
-
     try:
-        metrics = train_and_evaluate(dataset_path)
+        # 1. Store in GridFS
+        file_id = fs.put(file.read(), filename=file.filename, user=session["user"], type="dataset", timestamp=datetime.now())
+        
+        # 2. Temporarily save for training (compatibility with existing ML logic)
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{file_id}_{secure_filename(file.filename)}")
+        
+        # Get from GridFS to temp file
+        grid_out = fs.get(file_id)
+        with open(temp_path, "wb") as f:
+            f.write(grid_out.read())
+
+        # 3. Process
+        metrics = train_and_evaluate(temp_path)
 
         global model, feature_order
         model = load_model()
         feature_order = load_feature_order()
 
+        # Cleanup temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+        # ✅ Save to training history
+        training_record = {
+            "user": session["user"],
+            "filename": file.filename,
+            "file_id": file_id,
+            "timestamp": datetime.now(),
+            "metrics": metrics, # Stores accuracy, precision, etc.
+            "best_model": metrics[0]["model"] if metrics else "N/A",
+            "best_accuracy": metrics[0]["accuracy"] if metrics else "0%"
+        }
+        training_history_collection.insert_one(training_record)
+
         return render_template(
             "dataset_results.html",
             user=session["user"],
             metrics=metrics,
-            filename=filename
+            filename=file.filename
         )
 
     except Exception as e:
@@ -234,7 +275,6 @@ def upload_dataset():
 
 @app.route("/upload_apk", methods=["POST"])
 def upload_apk():
-
     if "user" not in session:
         return redirect(url_for("login"))
 
@@ -243,19 +283,31 @@ def upload_apk():
         flash("No APK file selected", "warning")
         return redirect(url_for("dashboard"))
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    filename = secure_filename(file.filename)
-    path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(path)
-
     try:
-        result = analyze_apk(path)
-        result["filename"] = filename
+        # 1. Store in GridFS
+        file_id = fs.put(file.read(), filename=file.filename, user=session["user"], type="apk", timestamp=datetime.now())
+        
+        # 2. Temporarily save for analysis
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{file_id}_{secure_filename(file.filename)}")
+        
+        grid_out = fs.get(file_id)
+        with open(temp_path, "wb") as f:
+            f.write(grid_out.read())
+
+        # 3. Analyze
+        result = analyze_apk(temp_path)
+        result["filename"] = file.filename
+        
+        # Cleanup
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
         
         # ✅ Save to scan history
         scan_record = {
             "user": session["user"],
-            "filename": filename,
+            "filename": file.filename,
+            "file_id": file_id, # Reference to GridFS file
             "timestamp": datetime.now(),
             "risk_score": result.get("risk_score", 0),
             "risk_level": result.get("risk_level", "Unknown"),
@@ -263,7 +315,6 @@ def upload_apk():
             "permissions_count": result.get("permissions_found", 0)
         }
         
-        # Add enhanced data if available
         if "enhanced" in result:
             scan_record["ensemble_prediction"] = result["enhanced"].get("ensemble_prediction", "Unknown")
             scan_record["models_count"] = len(result["enhanced"].get("models", {}))

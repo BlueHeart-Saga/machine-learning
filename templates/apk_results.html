@@ -2,750 +2,607 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>APK Analysis Results</title>
-    <!-- Chart.js & Font Awesome -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report | MalwareLab</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        :root {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --bg-dark: #030712;
+            --bg-sidebar: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.5);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.08);
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
-        body {
-            background: #edf3fa;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4, .logo { font-family: 'Outfit', sans-serif; }
 
-        .dashboard {
-            display: flex;
-            width: 1600px;
-            max-width: 98vw;
-            height: 96vh;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 30px 60px -15px #0b1f3370;
-            overflow: hidden;
-        }
-
+        /* SIDEBAR */
         .sidebar {
             width: 280px;
-            background: #0b1f33;
-            color: #c9ddff;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
+            z-index: 100;
+            height: 100vh;
         }
 
-        .sidebar h2 {
-            font-size: 1.9rem;
-            font-weight: 600;
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
             color: white;
-            margin-bottom: 2.8rem;
-            border-left: 5px solid #fbbf24;
-            padding-left: 1rem;
-        }
-
-        .sidebar a {
-            color: #aac3e0;
             text-decoration: none;
-            padding: 0.9rem 1.2rem;
-            border-radius: 18px;
-            margin: 0.3rem 0;
             display: flex;
             align-items: center;
             gap: 12px;
-            font-weight: 500;
-            transition: 0.2s;
+            margin-bottom: 3rem;
         }
 
-        .sidebar a i { width: 28px; font-size: 1.2rem; }
-        .sidebar a:hover { background: #1e3a5f; color: white; }
-        .sidebar a.logout { margin-top: auto; color: #f8b4b4; }
-        .sidebar a.logout:hover { background: #3a2435; color: #ffc6c6; }
+        .logo i { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary-glow)); }
 
-        .main {
-            flex: 1;
-            background: #f8fcff;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
 
-        .topbar {
-            background: white;
-            padding: 1.3rem 2.2rem;
-            border-bottom: 1px solid #e2ecf5;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .topbar h3 {
-            font-size: 1.8rem;
-            color: #0e2b4b;
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-        
-        .risk-badge {
-            padding: 0.5rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        
-        .risk-critical { background: #7f1d1d; color: white; }
-        .risk-high { background: #b91c1c; color: white; }
-        .risk-medium { background: #fbbf24; color: #0b1f33; }
-        .risk-low { background: #2563eb; color: white; }
-        .risk-safe { background: #059669; color: white; }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.8rem;
-            padding: 2rem;
-        }
-
-        .results-card {
-            background: white;
-            border-radius: 3px;
-            box-shadow: 0 12px 28px -10px #1e3a5f30;
-            border: 1px solid #d9e8f5;
-            padding: 1.6rem 1.5rem 1.8rem 1.5rem;
-            transition: 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .results-card:hover {
-            box-shadow: 0 22px 40px -12px #1e3f70;
-        }
-
-        .results-card h4 {
-            font-size: 1.5rem;
-            color: #103459;
-            border-left: 6px solid #fbbf24;
-            padding-left: 1rem;
-            margin-bottom: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 200px;
-            width: 100%;
-            margin: 0.5rem 0;
-        }
-
-        .risk-factor-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.5rem 0;
-            padding: 0.3rem 0;
-            border-bottom: 1px solid #e5eef8;
-            font-size: 0.95rem;
-        }
-        
-        .risk-factor-bar {
-            height: 6px;
-            background: #e5eef8;
-            border-radius: 3px;
-            margin: 0.3rem 0 0.8rem 0;
-            overflow: hidden;
-        }
-        
-        .risk-factor-fill {
-            height: 100%;
-            background: #b91c1c;
-            border-radius: 3px;
-        }
-
-        .permission-list {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f8faff;
-            border-radius: 12px;
-            padding: 0.5rem;
-            border: 1px solid #e2eaf5;
-        }
-        
-        .permission-item {
-            padding: 0.5rem;
-            border-bottom: 1px solid #e2eaf5;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .permission-item:last-child {
-            border-bottom: none;
-        }
-        
-        .permission-badge {
-            background: #dc2626;
-            color: white;
-            padding: 0.2rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .info-table td {
-            padding: 0.5rem;
-            border-bottom: 1px solid #e5eef8;
-        }
-        
-        .info-table td:first-child {
-            font-weight: 600;
-            color: #1e3f60;
-            width: 40%;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-            margin-top: 0.8rem;
-        }
-        
-        .stat-item {
-            background: #f5faff;
-            padding: 0.8rem;
-            border-radius: 12px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0b2b4f;
-        }
-        
-        .stat-label {
-            font-size: 0.8rem;
-            color: #4a6a8a;
-        }
-
-        .back-link { padding: 0 2rem 2rem 2rem; }
-        .back-btn {
-            background: white;
-            border: 2px solid #1e3f60;
-            color: #1e3f60;
-            border-radius: 40px;
-            padding: 0.7rem 2.2rem;
+            gap: 12px;
+            padding: 0.85rem 1.2rem;
+            color: var(--text-muted);
             text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-        .back-btn:hover { background: #1e3f60; color: white; }
-
-        .error-message {
-            color: #b91c1c;
-            background: #fee2e2;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .safe-message {
-            color: #059669;
-            background: #e6f7e6;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
+        .nav-item i { font-size: 1.1rem; width: 24px; }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
         }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            font-weight: 700;
+        }
+
+        .nav-item.logout { margin-top: auto; color: #ef4444; }
+        .nav-item.logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+        /* TOAST SYSTEM */
+        .toast-container { position: fixed; top: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 1rem; pointer-events: none; }
+        .toast { pointer-events: auto; width: 320px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); transform: translateX(120%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; border-left: 4px solid var(--primary); }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .toast-content { flex: 1; min-width: 0; }
+        .toast-title { font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 2px; font-family: 'Outfit', sans-serif; }
+        .toast-message { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
+        .toast-success { border-left-color: #10b981; }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+        .main-content { flex: 1; padding: 2rem 3rem; overflow-y: auto; background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 40%); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+
+        .results-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+        .card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; }
+        .card h3 { font-size: 1.1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; color: white; }
+        .card h3 i { color: var(--primary); font-size: 1rem; }
+
+        /* Grade System */
+        .grade-circle { width: 140px; height: 140px; border-radius: 50%; border: 10px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 800; font-family: 'Outfit'; margin: 0 auto 1.5rem; position: relative; }
+        .grade-circle::after { content: ''; position: absolute; inset: -15px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.05); animation: spin 20s linear infinite; }
+        .grade-a { color: var(--success); border-color: rgba(16, 185, 129, 0.2); box-shadow: 0 0 30px rgba(16, 185, 129, 0.1); }
+        .grade-b { color: var(--primary); border-color: rgba(59, 130, 246, 0.2); }
+        .grade-d { color: var(--warning); border-color: rgba(245, 158, 11, 0.2); }
+        .grade-f { color: var(--danger); border-color: rgba(239, 68, 68, 0.2); box-shadow: 0 0 40px rgba(239, 68, 68, 0.15); }
+
+        /* Intelligence Items */
+        .intel-item { background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 16px; margin-bottom: 1rem; border: 1px solid var(--border); }
+        .intel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem; font-weight: 700; color: white; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .intel-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .intel-tag { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+
+        /* Recommendations */
+        .rec-card { grid-column: span 12; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(59, 130, 246, 0.2); }
+        .rec-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 1.5rem; }
+        .rec-item { display: flex; gap: 15px; }
+        .rec-icon { width: 45px; height: 45px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); font-size: 1.2rem; }
+
+        .summary-table { width: 100%; border-collapse: collapse; }
+        .summary-table td { padding: 1rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .summary-table td:first-child { color: var(--text-muted); font-weight: 500; }
+        .summary-table td:last-child { color: white; font-weight: 700; text-align: right; }
+
+        /* Charts */
+        .chart-container { position: relative; height: 260px; width: 100%; }
+        .radar-container { height: 320px; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        /* Ultimate defensive styling */
-        .debug-note {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 0.5rem;
-            font-style: italic;
+        .summary-card { grid-column: span 8; display: flex; gap: 2rem; align-items: center; }
+        .summary-info { flex: 1; min-width: 0; }
+        .summary-stats { text-align: center; padding-left: 2rem; border-left: 1px solid var(--border); flex-shrink: 0; }
+
+        @media (max-width: 1200px) { 
+            .rec-list { grid-template-columns: 1fr; } 
+            .results-grid { grid-template-columns: 1fr; } 
+            .card { grid-column: span 12 !important; } 
         }
+
+        @media (max-width: 768px) {
+            .summary-card { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+            .summary-stats .stats-label { margin-bottom: 0 !important; }
+        }
+
+        /* PRINT OPTIMIZATION (Virtual Backend PDF) */
+        @media print {
+            body { background: white !important; color: #000 !important; height: auto !important; overflow: visible !important; display: block !important; }
+            .sidebar, .header div, .toast-container, .nav-item, a[href="/dashboard"], button { display: none !important; }
+            .main-content { padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
+            .results-grid { display: block !important; }
+            .card { 
+                background: white !important; border: 1px solid #ddd !important; 
+                break-inside: avoid !important; box-shadow: none !important; 
+                backdrop-filter: none !important; color: #000 !important; 
+                margin-bottom: 2rem !important; padding: 1.5rem !important;
+                grid-column: span 12 !important;
+            }
+            .header h1 { color: #000 !important; font-size: 2.5rem !important; margin-bottom: 1rem !important; }
+            h2, h3, h4 { color: #000 !important; }
+            .grade-circle { border-color: #eee !important; box-shadow: none !important; color: #000 !important; }
+            .grade-circle::after { display: none; }
+            .summary-table td { border-bottom: 1px solid #eee !important; color: #333 !important; }
+            .summary-table td:last-child { color: #000 !important; }
+            .chart-container { height: 350px !important; margin: 20px 0 !important; }
+            .intel-tag { background: #f3f4f6 !important; border: 1px solid #ddd !important; color: #000 !important; }
+            .verdict-box { border: 2px solid #ddd !important; color: #000 !important; background: #fff !important; break-inside: avoid; }
+            .verdict-malware { border-color: #ef4444 !important; }
+            .verdict-benign { border-color: #10b981 !important; }
+            canvas { max-width: 100% !important; height: auto !important; }
+        }
+
+        /* WORKFLOW DIAGRAM */
+        .workflow-container { grid-column: span 12; display: flex; justify-content: space-between; align-items: center; padding: 2rem 0; position: relative; margin-top: 1rem; }
+        .workflow-step { text-align: center; flex: 1; position: relative; z-index: 2; }
+        .step-icon { width: 50px; height: 50px; background: var(--bg-sidebar); border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: var(--primary); transition: all 0.3s ease; }
+        .workflow-step.active .step-icon { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); background: rgba(59, 130, 246, 0.1); }
+        .step-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .workflow-line { position: absolute; top: 25px; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 1; }
+        .workflow-line-progress { position: absolute; top: 0; left: 0; height: 100%; background: var(--primary); transition: width 1s ease; }
+
+        .verdict-box { grid-column: span 12; padding: 2.5rem; border-radius: 24px; color: white; display: flex; gap: 2rem; align-items: center; }
+        .verdict-malware { background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .verdict-benign { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .verdict-icon { font-size: 3.5rem; }
+        .verdict-content h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .verdict-content p { color: var(--text-muted); line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
     <aside class="sidebar">
-        <h2><i class="fas fa-Malware"></i> Malware<span style="color:#fbbf24;">Lab</span></h2>
-        <a href="/dashboard"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-        <a href="/history"><i class="fas fa-history"></i> Scan History</a>
-        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="/" class="logo">
+            <i class="fas fa-shield-virus"></i> <span>MalwareLab</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-columns"></i> <span>Overview</span>
+            </a>
+            <a href="/history" class="nav-item">
+                <i class="fas fa-clock-rotate-left"></i> <span>Scan History</span>
+            </a>
+            <a href="/logout" class="nav-item logout">
+                <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
+            </a>
+        </nav>
     </aside>
 
-    <main class="main">
-        <header class="topbar">
-            <h3><i class="fas fa-file-zipper" style="color:#2563eb;"></i> APK Analysis Results</h3>
-            <div class="risk-badge risk-{{ scan_result.risk_level.split()[0].lower() if scan_result.risk_level and scan_result.risk_level is string else 'unknown' }}">
-                {{ scan_result.risk_level if scan_result.risk_level else 'Unknown' }}
+    <main class="main-content">
+        <header class="header">
+            <h1>Forensic Report</h1>
+            <div style="text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Analysis ID</p>
+                <p style="font-family: monospace; font-weight: 700;">#{{ scan_result.enhanced.package_info.hash[:12] if scan_result.enhanced else 'XJ-9000-B' }}</p>
             </div>
         </header>
 
-        <!-- Summary Card -->
-        <div style="padding: 0 2rem;">
-            <div class="results-card" style="width: 100%;">
-                <h4><i class="fas fa-info-circle"></i> Analysis Summary</h4>
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.5rem;">
-                    <div>
-                        <table class="info-table">
-                            <tr><td>Filename</td><td style="word-break: break-word;">{{ scan_result.filename if scan_result.filename else 'Unknown' }}</td></tr>
-                            {% if scan_result.enhanced and scan_result.enhanced.package_info %}
-                            <tr><td>Package</td><td>{{ scan_result.enhanced.package_info.name if scan_result.enhanced.package_info.name else 'Unknown' }}</td></tr>
-                            <tr><td>Version</td><td>{{ scan_result.enhanced.package_info.version if scan_result.enhanced.package_info.version else 'Unknown' }}</td></tr>
-                            <tr><td>Min SDK</td><td>{{ scan_result.enhanced.package_info.min_sdk if scan_result.enhanced.package_info.min_sdk else 'Unknown' }}</td></tr>
-                            {% endif %}
-                        </table>
-                    </div>
-                    <div>
-                        <table class="info-table">
-                            <tr><td>Prediction</td>
-                                <td><span style="font-weight: 700; color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};">
-                                    {{ scan_result.prediction|upper if scan_result.prediction else 'UNKNOWN' }}
-                                </span></td>
-                            </tr>
-                            <tr><td>Confidence</td><td>{{ scan_result.confidence if scan_result.confidence else 'N/A' }}{% if scan_result.confidence and scan_result.confidence != 'N/A' %}%{% endif %}</td></tr>
-                            <tr><td>Risk Score</td><td><strong>{{ scan_result.risk_score if scan_result.risk_score else 0 }}</strong>/100</td></tr>
-                        </table>
-                    </div>
-                    <div style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="font-size: 4rem;">
-                            <i class="fas fa-{% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}exclamation-triangle{% else %}check-circle{% endif %}" 
-                               style="color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};"></i>
-                        </div>
-                        <div style="font-weight: 700; font-size: 1.5rem; color: {% if scan_result.prediction and scan_result.prediction|lower == 'malware' %}#b91c1c{% else %}#059669{% endif %};">
-                            {{ scan_result.prediction|upper if scan_result.prediction else 'UNKNOWN' }}
-                        </div>
+        <div class="results-grid">
+            <!-- Summary Header -->
+            <div class="card summary-card">
+                <div class="summary-info">
+                    <h2 style="font-size: 2rem; margin-bottom: 0.5rem; word-break: break-all;">{{ scan_result.filename }}</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem; word-break: break-all;">Package: {{ scan_result.enhanced.package_info.name if scan_result.enhanced else 'com.app.unknown' }}</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <span style="padding: 0.4rem 1rem; border-radius: 100px; background: rgba(59, 130, 246, 0.1); color: var(--primary); font-size: 0.8rem; font-weight: 700;">API {{ scan_result.enhanced.package_info.min_sdk if scan_result.enhanced else '?' }}</span>
+                        <span style="padding: 0.4rem 1rem; border-radius: 100px; background: rgba(255,255,255,0.05); color: white; font-size: 0.8rem; font-weight: 700;">VERSION {{ scan_result.enhanced.package_info.version if scan_result.enhanced else '1.0' }}</span>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Results Grid -->
-        <section class="results-grid">
-            <!-- Card 1: Risk Score Gauge -->
-            <div class="results-card">
-                <h4><i class="fas fa-gauge-high"></i> Risk Score</h4>
-                <div class="chart-container" style="height: 180px;">
-                    <canvas id="riskGauge"></canvas>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.risk_score if scan_result.risk_score else 0 }}</div>
-                        <div class="stat-label">Score</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">
-                            {% if scan_result.enhanced and scan_result.enhanced.risk_factors and scan_result.enhanced.risk_factors is mapping %}
-                                {{ scan_result.enhanced.risk_factors|length }}
-                            {% else %}
-                                0
-                            {% endif %}
-                        </div>
-                        <div class="stat-label">Risk Factors</div>
-                    </div>
+                <div class="summary-stats">
+                    <div class="stats-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">AI Confidence</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; font-family: 'Outfit'; color: white;">{{ scan_result.confidence }}%</div>
                 </div>
             </div>
 
-            <!-- Card 2: Permission Overview -->
-            <div class="results-card">
-                <h4><i class="fas fa-key"></i> Permissions</h4>
-                <div class="chart-container" style="height: 160px;">
-                    <canvas id="permissionChart"></canvas>
+            <!-- Security Grade -->
+            <div class="card" style="grid-column: span 4; text-align: center;">
+                <h3>Security Rating</h3>
+                <div class="grade-circle grade-{{ scan_result.security_grade|lower if scan_result.security_grade else 'b' }}">
+                    {{ scan_result.security_grade if scan_result.security_grade else 'B' }}
                 </div>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">
-                            {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.dangerous is number %}
-                                {{ scan_result.enhanced.permissions.dangerous }}
-                            {% elif scan_result.dangerous_permissions and scan_result.dangerous_permissions is iterable and scan_result.dangerous_permissions is not string %}
-                                {{ scan_result.dangerous_permissions|length }}
-                            {% else %}
-                                0
-                            {% endif %}
-                        </div>
-                        <div class="stat-label">Dangerous</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">
-                            {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.total is number %}
-                                {{ scan_result.enhanced.permissions.total }}
-                            {% elif scan_result.permissions_found is number %}
-                                {{ scan_result.permissions_found }}
-                            {% else %}
-                                0
-                            {% endif %}
-                        </div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                </div>
+                <p style="font-weight: 700; color: {{ 'var(--danger)' if scan_result.risk_score > 15 else 'var(--success)' }};">
+                    {{ scan_result.risk_level }}
+                </p>
             </div>
 
-            <!-- Card 3: Risk Factors - ULTIMATE DEFENSIVE LOOP -->
-            <div class="results-card">
-                <h4><i class="fas fa-chart-pie"></i> Risk Factors</h4>
-                <div style="margin-top: 0.5rem;">
-                    {# MULTI-LAYER DEFENSE: Check if risk_factors exists, is a dictionary, and has items #}
-                    {% if scan_result.enhanced and 
-                          scan_result.enhanced.risk_factors is defined and 
-                          scan_result.enhanced.risk_factors is not none and
-                          scan_result.enhanced.risk_facts is mapping and
-                          scan_result.enhanced.risk_factors.items is defined %}
-                        
-                        {# SAFE TO LOOP - we've verified it's a dictionary with items() method #}
-                        {% for factor, score in scan_result.enhanced.risk_factors.items() %}
-                        <div class="risk-factor-item">
-                            <span>{{ factor|replace('_', ' ')|title if factor is string else 'Unknown Factor' }}</span>
-                            <span><strong>
-                                {% if score is number %}
-                                    {{ "%.1f"|format(score) }}
-                                {% else %}
-                                    0.0
-                                {% endif %}
-                            </strong></span>
-                        </div>
-                        <div class="risk-factor-bar">
-                            <div class="risk-factor-fill" style="width: {{ (score|float / 30 * 100)|min(100) if score is number else 0 }}%;"></div>
-                        </div>
-                        {% endfor %}
-                        
-                    {# IF IT'S A FLOAT OR OTHER NON-ITERABLE, SHOW MESSAGE INSTEAD OF LOOPING #}
-                    {% elif scan_result.enhanced and scan_result.enhanced.risk_factors is defined and scan_result.enhanced.risk_factors is number %}
-                        <div class="error-message">
-                            ⚠️ Risk factor data is a number ({{ scan_result.enhanced.risk_factors }}) instead of a dictionary
-                        </div>
-                        <div class="debug-note">Expected dictionary, got float - displaying placeholder</div>
-                        <!-- Show placeholder data instead of crashing -->
-                        <div class="risk-factor-item"><span>Permissions</span><span><strong>0.0</strong></span></div>
-                        <div class="risk-factor-bar"><div class="risk-factor-fill" style="width: 0%;"></div></div>
-                        <div class="risk-factor-item"><span>Components</span><span><strong>0.0</strong></span></div>
-                        <div class="risk-factor-bar"><div class="risk-factor-fill" style="width: 0%;"></div></div>
-                        
-                    {% else %}
-                        <p style="color: #6b7f99; text-align: center;">No risk factor data available</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Card 4: Components -->
-            <div class="results-card">
-                <h4><i class="fas fa-cubes"></i> Components</h4>
-                <div class="chart-container" style="height: 160px;">
-                    <canvas id="componentsChart"></canvas>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.components.activities if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.activities is number else scan_result.activities if scan_result.activities is number else 0 }}</div>
-                        <div class="stat-label">Activities</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.components.services if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.services is number else scan_result.services if scan_result.services is number else 0 }}</div>
-                        <div class="stat-label">Services</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.components.receivers if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.receivers is number else scan_result.receivers if scan_result.receivers is number else 0 }}</div>
-                        <div class="stat-label">Receivers</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.components.providers if scan_result.enhanced and scan_result.enhanced.components and scan_result.enhanced.components.providers is number else 0 }}</div>
-                        <div class="stat-label">Providers</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 5: Dangerous Permissions - ULTIMATE DEFENSIVE LOOP -->
-            <div class="results-card">
-                <h4><i class="fas fa-exclamation-triangle"></i> Dangerous Permissions</h4>
-                <div class="permission-list">
-                    {# MULTI-LAYER DEFENSE: Check if dangerous_list exists and is iterable but NOT a string/float #}
-                    {% if scan_result.enhanced and 
-                          scan_result.enhanced.permissions and 
-                          scan_result.enhanced.permissions.dangerous_list is defined and
-                          scan_result.enhanced.permissions.dangerous_list is not none and
-                          scan_result.enhanced.permissions.dangerous_list is iterable and 
-                          scan_result.enhanced.permissions.dangerous_list is not string and
-                          scan_result.enhanced.permissions.dangerous_list is not number %}
-                        
-                        {# SAFE TO LOOP - we've verified it's a list/iterable #}
-                        {% for perm in scan_result.enhanced.permissions.dangerous_list %}
-                            {% if perm is string %}
-                            <div class="permission-item">
-                                <span style="font-size: 0.85rem;">{{ perm.split('.')[-1] if '.' in perm else perm }}</span>
-                                <span class="permission-badge">DANGEROUS</span>
+            <!-- Threat Intelligence -->
+            <div class="card" style="grid-column: span 7;">
+                <h3><i class="fas fa-brain"></i> Threat Intelligence</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Advanced pattern matching and heuristic triggers.</p>
+                
+                {% if scan_result.enhanced and scan_result.enhanced.intelligence %}
+                    {% if scan_result.enhanced.intelligence.suspicious_strings %}
+                        {% for item in scan_result.enhanced.intelligence.suspicious_strings %}
+                        <div class="intel-item">
+                            <div class="intel-header"><i class="fas fa-search-plus"></i> {{ item.category }}</div>
+                            <div class="intel-tags">
+                                {% for match in item.matches %}
+                                <span class="intel-tag">{{ match }}</span>
+                                {% endfor %}
                             </div>
-                            {% endif %}
-                        {% endfor %}
-                        
-                    {# IF IT'S A FLOAT OR OTHER NON-ITERABLE, SHOW MESSAGE INSTEAD OF LOOPING #}
-                    {% elif scan_result.enhanced and 
-                          scan_result.enhanced.permissions and 
-                          scan_result.enhanced.permissions.dangerous_list is defined and
-                          scan_result.enhanced.permissions.dangerous_list is number %}
-                        <div class="error-message">
-                            ⚠️ Permission data is a number ({{ scan_result.enhanced.permissions.dangerous_list }}) instead of a list
-                        </div>
-                        
-                    {% elif scan_result.dangerous_permissions and 
-                          scan_result.dangerous_permissions is iterable and 
-                          scan_result.dangerous_permissions is not string and
-                          scan_result.dangerous_permissions is not number %}
-                        {# FALLBACK to basic dangerous_permissions #}
-                        {% for perm in scan_result.dangerous_permissions %}
-                        <div class="permission-item">
-                            <span style="font-size: 0.85rem;">{{ perm }}</span>
-                            <span class="permission-badge">DANGEROUS</span>
                         </div>
                         {% endfor %}
-                        
-                    {% else %}
-                        <p style="color: #6b7f99; text-align: center;">No dangerous permissions detected</p>
                     {% endif %}
-                </div>
-                <div style="margin-top: 0.8rem; text-align: center; color: #6b7f99; font-size: 0.85rem;">
-                    Total: 
-                    {% if scan_result.enhanced and scan_result.enhanced.permissions and scan_result.enhanced.permissions.dangerous_list is iterable and scan_result.enhanced.permissions.dangerous_list is not string and scan_result.enhanced.permissions.dangerous_list is not number %}
-                        {{ scan_result.enhanced.permissions.dangerous_list|length }}
-                    {% elif scan_result.dangerous_permissions is iterable and scan_result.dangerous_permissions is not string and scan_result.dangerous_permissions is not number %}
-                        {{ scan_result.dangerous_permissions|length }}
-                    {% else %}
-                        0
-                    {% endif %} dangerous permissions
+
+                    {% if scan_result.enhanced.intelligence.suspicious_intents %}
+                    <div class="intel-item">
+                        <div class="intel-header"><i class="fas fa-door-open"></i> Suspicious Entry Points</div>
+                        <div class="intel-tags">
+                            {% for intent in scan_result.enhanced.intelligence.suspicious_intents %}
+                            <span class="intel-tag" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">{{ intent }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No deep intelligence data available.</p>
+                {% endif %}
+            </div>
+
+            <!-- Static Analysis Metrics -->
+            <div class="card" style="grid-column: span 5;">
+                <h3><i class="fas fa-chart-pie"></i> Component Breakdown</h3>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="componentChart"></canvas>
                 </div>
             </div>
 
-            <!-- Card 6: File Analysis -->
-            <div class="results-card">
-                <h4><i class="fas fa-file"></i> Files</h4>
-                <div class="chart-container" style="height: 160px;">
-                    <canvas id="filesChart"></canvas>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.files.dex if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.dex is number else 0 }}</div>
-                        <div class="stat-label">DEX</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.files.native_libs if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.native_libs is number else scan_result.native_libs if scan_result.native_libs is number else 0 }}</div>
-                        <div class="stat-label">Native</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.files.assets if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.assets is number else 0 }}</div>
-                        <div class="stat-label">Assets</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ scan_result.enhanced.files.total if scan_result.enhanced and scan_result.enhanced.files and scan_result.enhanced.files.total is number else 0 }}</div>
-                        <div class="stat-label">Total</div>
-                    </div>
+            <!-- Risk Vector Radar -->
+            <div class="card" style="grid-column: span 6;">
+                <h3><i class="fas fa-shield-virus"></i> Risk Vector Analysis</h3>
+                <div class="chart-container radar-container">
+                    <canvas id="riskRadarChart"></canvas>
                 </div>
             </div>
 
-            <!-- Card 7: APK Details -->
-            <div class="results-card">
-                <h4><i class="fas fa-info-circle"></i> APK Details</h4>
-                <table class="info-table">
-                    {% if scan_result.enhanced and scan_result.enhanced.package_info %}
-                    <tr><td>Package</td><td style="font-size: 0.85rem;">{{ scan_result.enhanced.package_info.name if scan_result.enhanced.package_info.name else 'Unknown' }}</td></tr>
-                    <tr><td>Version</td><td>{{ scan_result.enhanced.package_info.version if scan_result.enhanced.package_info.version else 'Unknown' }}</td></tr>
-                    <tr><td>Min SDK</td><td>{{ scan_result.enhanced.package_info.min_sdk if scan_result.enhanced.package_info.min_sdk else 'Unknown' }}</td></tr>
-                    <tr><td>Target SDK</td><td>{{ scan_result.enhanced.package_info.target_sdk if scan_result.enhanced.package_info.target_sdk else 'Unknown' }}</td></tr>
-                    <tr><td>Obfuscation</td><td>{{ scan_result.enhanced.obfuscation_score if scan_result.enhanced.obfuscation_score is number else 0 }}</td></tr>
-                    <tr><td>SHA256</td><td style="font-size: 0.7rem;">{{ scan_result.enhanced.package_info.hash[:20] if scan_result.enhanced.package_info.hash else 'N/A' }}...</td></tr>
-                    {% endif %}
+            <!-- Permission Distribution -->
+            <div class="card" style="grid-column: span 6;">
+                <h3><i class="fas fa-key"></i> Permission Integrity</h3>
+                <div class="chart-container radar-container">
+                    <canvas id="permDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Model Consensus -->
+            <div class="card" style="grid-column: span 7;">
+                <h3><i class="fas fa-microchip"></i> AI Model Consensus</h3>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="consensusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tech Details -->
+            <div class="card" style="grid-column: span 5;">
+                <h3><i class="fas fa-file-code"></i> Technical Summary</h3>
+                <table class="summary-table">
+                    <tr><td>Native Libraries</td><td>{{ scan_result.native_libs }}</td></tr>
+                    <tr><td>DEX Files</td><td>{{ scan_result.enhanced.files.dex if scan_result.enhanced else '?' }}</td></tr>
+                    <tr><td>Asset Files</td><td>{{ scan_result.enhanced.files.assets if scan_result.enhanced else '?' }}</td></tr>
+                    <tr><td>Obfuscation Level</td><td>{{ 'High' if scan_result.enhanced and scan_result.enhanced.obfuscation_score > 5 else 'Standard' }}</td></tr>
+                    <tr><td>Risk Score</td><td style="font-family: 'Outfit'; font-size: 1.2rem; color: white;">{{ scan_result.risk_score }}/100</td></tr>
                 </table>
             </div>
-        </section>
 
-        <!-- Back Button -->
-        <div class="back-link">
-            <a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <!-- Recommendations -->
+            <div class="card rec-card">
+                <h3><i class="fas fa-lightbulb"></i> Security Recommendations</h3>
+                <div class="rec-list">
+                    <div class="rec-item">
+                        <div class="rec-icon"><i class="fas fa-shield-halved"></i></div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Restrict Permissions</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">The app requests high-risk permissions. Students should audit why the app needs access to system-level data like SMS or Location.</p>
+                        </div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-icon"><i class="fas fa-code-branch"></i></div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Heuristic Patterns</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">We detected specific code patterns (intents/strings) that are commonly used by educational malware samples for data exfiltration.</p>
+                        </div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-icon"><i class="fas fa-network-wired"></i></div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Structural Integrity</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">The presence of native libraries (.so) and obfuscated classes increases the complexity of the app, often hiding malicious payloads.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEEP PERMISSION AUDIT -->
+            <div class="card" style="grid-column: span 12;">
+                <h3><i class="fas fa-key"></i> Deep Permission Audit</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Full breakdown of requested system access categorized by risk level.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Dangerous Column -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; color: var(--danger); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-circle-exclamation"></i> High-Risk Red Flags ({{ scan_result.enhanced.permissions.dangerous }})
+                        </div>
+                        <div style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: 16px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+                            {% if scan_result.enhanced.permissions.dangerous_list %}
+                                {% for p in scan_result.enhanced.permissions.dangerous_list %}
+                                <div style="padding: 0.8rem; background: rgba(239, 68, 68, 0.05); border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(239, 68, 68, 0.1);">
+                                    <i class="fas fa-triangle-exclamation" style="color: var(--danger);"></i>
+                                    <span style="color: #fca5a5; font-family: monospace;">{{ p.split('.')[-1] }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.85rem;">No high-risk permissions detected.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Normal Column -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; color: var(--success); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-circle-check"></i> Standard Access ({{ scan_result.enhanced.permissions.normal }})
+                        </div>
+                        <div style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.1); border-radius: 16px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+                            {% if scan_result.enhanced.permissions.normal_list %}
+                                {% for p in scan_result.enhanced.permissions.normal_list %}
+                                <div style="padding: 0.8rem; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border);">
+                                    <i class="fas fa-check" style="color: var(--success);"></i>
+                                    <span style="color: #d1d5db; font-family: monospace;">{{ p.split('.')[-1] }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.85rem;">No standard permissions detected.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPLAINABLE AI WORKFLOW -->
+            <div class="card" style="grid-column: span 12;">
+                <h3><i class="fas fa-project-diagram"></i> AI Detection Pipeline </h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Understanding how our Machine Learning models analyzed this APK.</p>
+                
+                <div class="workflow-container">
+                    <div class="workflow-line"><div class="workflow-line-progress" style="width: 100%;"></div></div>
+                    <div class="workflow-step active">
+                        <div class="step-icon"><i class="fas fa-file-upload"></i></div>
+                        <div class="step-label">Upload</div>
+                    </div>
+                    <div class="workflow-step active">
+                        <div class="step-icon"><i class="fas fa-tools"></i></div>
+                        <div class="step-label">Decompile</div>
+                    </div>
+                    <div class="workflow-step active">
+                        <div class="step-icon"><i class="fas fa-filter"></i></div>
+                        <div class="step-label">Feature extraction</div>
+                    </div>
+                    <div class="workflow-step active">
+                        <div class="step-icon"><i class="fas fa-brain"></i></div>
+                        <div class="step-label">ML Inference</div>
+                    </div>
+                    <div class="workflow-step active">
+                        <div class="step-icon"><i class="fas fa-square-poll-vertical"></i></div>
+                        <div class="step-label">Result</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem;">
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">1. Decompilation</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">The APK is reverse-engineered to extract the Manifest and Smali code. This allows the AI to see "inside" the app.</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">2. Feature Mapping</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Permissions, Intents, and Strings are converted into a numerical vector that computers can understand.</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">3. Neural Voting</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Multiple models (Random Forest, XGBoost) vote on the result to ensure maximum detection accuracy.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINAL VERDICT SECTION -->
+            <div class="verdict-box {% if scan_result.prediction == 'malware' %}verdict-malware{% else %}verdict-benign{% endif %}">
+                <div class="verdict-icon">
+                    {% if scan_result.prediction == 'malware' %}
+                        <i class="fas fa-biohazard" style="color: var(--danger);"></i>
+                    {% else %}
+                        <i class="fas fa-shield-check" style="color: var(--success);"></i>
+                    {% endif %}
+                </div>
+                <div class="verdict-content">
+                    <h3>Final Security Verdict: {{ scan_result.prediction|upper }}</h3>
+                    <p>
+                        {% if scan_result.prediction == 'malware' %}
+                            <strong>Analysis Conclusion:</strong> Our AI detected significant malicious indicators. This APK exhibits behavior consistent with malware, including high-risk permission requests and suspicious background services. It is <strong>NOT RECOMMENDED</strong> to install this file on a physical device.
+                        {% else %}
+                            <strong>Analysis Conclusion:</strong> No major threats detected. The APK follows standard development patterns and doesn't request unusual permissions. While no automated system is 100% perfect, this file appears safe for general use based on our current AI training data.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 3rem; text-align: center; padding-bottom: 3rem;">
+            <a href="/dashboard" style="text-decoration: none; color: var(--text-muted); font-weight: 700; padding: 0.8rem 2rem; border: 1px solid var(--border); border-radius: 100px; transition: all 0.3s ease;">
+                <i class="fas fa-arrow-left"></i> Return to Dashboard
+            </a>
+            <button onclick="window.print()" style="margin-left: 1rem; background: var(--primary); color: white; border: none; padding: 0.8rem 2rem; border-radius: 100px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-file-pdf"></i> Download PDF Report
+            </button>
         </div>
     </main>
-</div>
 
-<script>
-(function() {
-    // ULTIMATE DEFENSIVE JAVASCRIPT - with fallbacks for every value
-    let scanResult;
-    try {
-        scanResult = {{ scan_result|tojson|safe }};
-    } catch(e) {
-        console.error("Failed to parse scan result:", e);
-        scanResult = { risk_score: 0 };
-    }
-    
-    // Helper function to safely get values
-    function safeGet(obj, path, defaultValue = 0) {
-        try {
-            const value = path.split('.').reduce((current, key) => current?.[key], obj);
-            return value !== undefined && value !== null ? value : defaultValue;
-        } catch(e) {
-            return defaultValue;
-        }
-    }
-    
-    // 1. Risk Gauge
-    const ctxGauge = document.getElementById('riskGauge')?.getContext('2d');
-    if (ctxGauge) {
-        const riskScore = safeGet(scanResult, 'risk_score', 0);
-        new Chart(ctxGauge, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [riskScore, 100 - riskScore],
-                    backgroundColor: [
-                        riskScore >= 70 ? '#b91c1c' : 
-                        riskScore >= 30 ? '#fbbf24' : '#059669',
-                        '#e2eaf3'
-                    ],
-                    borderWidth: 0,
-                    borderRadius: 10
-                }]
-            },
-            options: {
-                cutout: '75%',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } }
-            }
-        });
-    }
+    <script>
+        const scanData = {{ scan_result | tojson }};
+        const enhanced = scanData.enhanced || {};
 
-    // 2. Permission Chart
-    const ctxPerm = document.getElementById('permissionChart')?.getContext('2d');
-    if (ctxPerm) {
-        let dangerous = 0;
-        let normal = 0;
-        
-        // Try to get from enhanced first
-        if (scanResult.enhanced?.permissions) {
-            dangerous = safeGet(scanResult, 'enhanced.permissions.dangerous', 0);
-            normal = safeGet(scanResult, 'enhanced.permissions.normal', 0);
-        } else {
-            // Fallback to basic fields
-            dangerous = scanResult.dangerous_permissions?.length || 0;
-            normal = (scanResult.permissions_found || 0) - dangerous;
-        }
-        
-        new Chart(ctxPerm, {
-            type: 'doughnut',
-            data: {
-                labels: ['Dangerous', 'Normal'],
-                datasets: [{
-                    data: [dangerous, normal],
-                    backgroundColor: ['#b91c1c', '#2563eb'],
-                    borderWidth: 0,
-                    borderRadius: 10
-                }]
-            },
-            options: {
-                cutout: '60%',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
+        Chart.defaults.color = '#9ca3af';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
 
-    // 3. Components Chart
-    const ctxComp = document.getElementById('componentsChart')?.getContext('2d');
-    if (ctxComp) {
-        let activities = 0, services = 0, receivers = 0, providers = 0;
-        
-        if (scanResult.enhanced?.components) {
-            activities = safeGet(scanResult, 'enhanced.components.activities', 0);
-            services = safeGet(scanResult, 'enhanced.components.services', 0);
-            receivers = safeGet(scanResult, 'enhanced.components.receivers', 0);
-            providers = safeGet(scanResult, 'enhanced.components.providers', 0);
-        } else {
-            activities = scanResult.activities || 0;
-            services = scanResult.services || 0;
-            receivers = scanResult.receivers || 0;
-        }
-        
-        new Chart(ctxComp, {
-            type: 'bar',
+        // 1. Component Polar Area
+        new Chart(document.getElementById('componentChart'), {
+            type: 'polarArea',
             data: {
                 labels: ['Activities', 'Services', 'Receivers', 'Providers'],
                 datasets: [{
-                    data: [activities, services, receivers, providers],
-                    backgroundColor: '#2563eb',
-                    borderRadius: 6
+                    data: [
+                        scanData.activities || 0,
+                        scanData.services || 0,
+                        scanData.receivers || 0,
+                        enhanced.components?.providers || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.6)',
+                        'rgba(16, 185, 129, 0.6)',
+                        'rgba(245, 158, 11, 0.6)',
+                        'rgba(139, 92, 246, 0.6)'
+                    ]
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+
+        // 2. Risk Radar
+        const factors = enhanced.risk_factors || {};
+        new Chart(document.getElementById('riskRadarChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Permissions', 'Components', 'Native Code', 'Network', 'Obfuscation'],
+                datasets: [{
+                    label: 'Risk Weight',
+                    data: [
+                        factors.permissions || 0,
+                        factors.components || 0,
+                        factors.native_code || 0,
+                        factors.network_indicators || 0,
+                        factors.obfuscation || 0
+                    ],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: '#ef4444',
+                    pointBackgroundColor: '#ef4444'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { stepSize: 1, precision: 0 },
-                        grid: { display: false }
-                    },
-                    x: { grid: { display: false } }
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 30,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        angleLines: { color: 'rgba(255,255,255,0.05)' }
+                    }
                 }
             }
         });
-    }
 
-    // 4. Files Chart
-    const ctxFiles = document.getElementById('filesChart')?.getContext('2d');
-    if (ctxFiles) {
-        let dex = 0, native = 0, assets = 0;
-        
-        if (scanResult.enhanced?.files) {
-            dex = safeGet(scanResult, 'enhanced.files.dex', 0);
-            native = safeGet(scanResult, 'enhanced.files.native_libs', 0);
-            assets = safeGet(scanResult, 'enhanced.files.assets', 0);
-        } else {
-            native = scanResult.native_libs || 0;
-        }
-        
-        new Chart(ctxFiles, {
+        // 3. Permission Doughnut
+        new Chart(document.getElementById('permDistributionChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Standard', 'Dangerous'],
+                datasets: [{
+                    data: [enhanced.permissions?.normal || 0, enhanced.permissions?.dangerous || 0],
+                    backgroundColor: ['rgba(16, 185, 129, 0.6)', 'rgba(239, 68, 68, 0.6)'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        // 4. Model Consensus
+        const models = enhanced.models || {};
+        new Chart(document.getElementById('consensusChart'), {
             type: 'bar',
             data: {
-                labels: ['DEX', 'Native', 'Assets'],
+                labels: Object.keys(models).map(m => m.replace('_', ' ').toUpperCase()),
                 datasets: [{
-                    data: [dex, native, assets],
-                    backgroundColor: '#059669',
-                    borderRadius: 6
+                    label: 'Detection Confidence (%)',
+                    data: Object.values(models).map(m => m.confidence * 100),
+                    backgroundColor: Object.values(models).map(m => m.prediction == 'malware' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(16, 185, 129, 0.6)'),
+                    borderRadius: 8
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { stepSize: 1, precision: 0 },
-                        grid: { display: false }
-                    },
-                    x: { grid: { display: false } }
-                }
+                scales: { x: { max: 100, beginAtZero: true } },
+                plugins: { legend: { display: false } }
             }
         });
-    }
-})();
-</script>
+
+        window.addEventListener('DOMContentLoaded', () => {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        toastManager.show("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+    </script>
 </body>
 </html>

@@ -3,348 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login · MalwareLab</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Font Inter (professional) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <title>Login | MalwareLab</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --bg-dark: #030712;
+            --bg-card: rgba(17, 24, 39, 0.8);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
+
         body {
-            background: #f2f5f9;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 50%);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            padding: 1rem;
+            padding: 2rem;
         }
-        /* home icon top-right corner */
-        .home-corner {
-            position: absolute;
+
+        /* Home link */
+        .home-link {
+            position: fixed;
             top: 2rem;
-            right: 2.5rem;
-            z-index: 10;
+            left: 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
-        .home-corner a {
-            background: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+
+        .home-link:hover {
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        /* Login Card */
+        .auth-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 3.5rem 3rem;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Outfit';
+            color: white;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 18px rgba(0,20,50,0.1);
-            color: #1e3a5f;
-            font-size: 1.6rem;
-            transition: 0.2s;
-            border: 1px solid #e2eaf2;
-            text-decoration: none;
-        }
-        .home-corner a:hover {
-            background: #1e3a5f;
-            color: white;
-            transform: scale(1.05);
+            gap: 12px;
         }
 
-        /* login card – professional */
-        .login-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 30px 60px rgba(0,20,40,0.12);
-            padding: 2.8rem 3rem;
-            width: 100%;
-            max-width: 480px;
-            border: 1px solid #e9eef4;
+        .logo i {
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
         }
-        .login-header {
-            text-align: center;
-            margin-bottom: 2.2rem;
-        }
-        .login-header h2 {
-            font-size: 2.3rem;
+
+        .auth-header h2 {
+            font-size: 1.8rem;
             font-weight: 700;
-            color: #0a2540;
-            letter-spacing: -0.02em;
+            color: white;
+            font-family: 'Outfit';
         }
-        .login-header p {
-            color: #4a607a;
+
+        .auth-header p {
+            color: var(--text-muted);
             margin-top: 0.5rem;
-            font-size: 1.05rem;
         }
 
-        /* error box (inline) – visible only when error_msg is present */
-        .error-message {
-            background: #ffefef;
-            border-left: 6px solid #dc2626;
-            color: #b91c1c;
-            padding: 1rem 1.2rem;
-            border-radius: 24px;
-            margin-bottom: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            font-weight: 500;
-            font-size: 0.98rem;
-        }
-        .error-message i {
-            font-size: 1.3rem;
-        }
-
-        /* form groups */
+        /* Form Controls */
         .input-group {
             margin-bottom: 1.5rem;
         }
+
         .input-group label {
-            font-weight: 600;
-            color: #1e3a5f;
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
         }
-        .input-group input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: #f9fcff;
-            border: 1.5px solid #d5e2f0;
-            border-radius: 40px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.15s;
-        }
-        .input-group input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px #2563eb20;
-        }
-        .password-wrapper {
+
+        .input-wrapper {
             position: relative;
+            width: 100%;
+            display: block;
         }
-        .toggle-pw {
+
+        .input-wrapper i:first-child {
             position: absolute;
-            right: 1.5rem;
+            left: 1.2rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #64748b;
-            cursor: pointer;
-            font-size: 1.2rem;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
-        .btn-login {
-            background: #1e3a5f;
+        .input-group input {
+            width: 100%;
+            display: block;
+            padding: 0.85rem 3.5rem 0.85rem 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .password-toggle:hover {
+            color: white;
+        }
+
+        /* Buttons */
+        .btn-submit {
             width: 100%;
             padding: 1rem;
+            background: var(--primary);
+            color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 700;
-            font-size: 1.2rem;
             cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 8px 18px rgba(0,40,80,0.15);
-            margin: 1rem 0 1.5rem;
-        }
-        .btn-login:hover {
-            background: #2563eb;
-            transform: scale(1.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 1rem;
+            box-shadow: 0 4px 14px 0 var(--primary-glow);
         }
 
-        .register-link {
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            background: #2563eb;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .auth-footer {
             text-align: center;
-            font-weight: 500;
-            color: #2e4a6a;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
         }
-        .register-link a {
-            color: #2563eb;
+
+        .auth-footer a {
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 700;
-            margin-left: 0.3rem;
+            font-weight: 600;
         }
-        .register-link a:hover {
+
+        .auth-footer a:hover {
             text-decoration: underline;
         }
 
-        /* success popup (hidden by default) */
-        .popup-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-        .popup-card {
-            background: white;
-            max-width: 360px;
-            width: 90%;
-            border-radius: 48px;
-            padding: 2rem 2rem 1.8rem;
-            text-align: center;
-            box-shadow: 0 40px 70px rgba(0,20,40,0.3);
-            border: 1px solid #d9e6f5;
-        }
-        .popup-card i {
-            font-size: 4rem;
-            color: #10b981;
-            background: #e6f7ee;
-            padding: 1rem;
-            border-radius: 60px;
-            margin-bottom: 1rem;
-        }
-        .popup-card h3 {
-            font-size: 1.8rem;
-            color: #0b1e33;
-            margin-bottom: 0.5rem;
-        }
-        .popup-card p {
-            color: #3b5777;
-            margin-bottom: 2rem;
-        }
-        .popup-btn {
-            background: #1e3a5f;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.1rem;
-        }
-        .popup-btn:hover {
-            background: #2563eb;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .forgot-link {
-            text-align: right;
-            margin-top: -0.5rem;
-            margin-bottom: 0.8rem;
+        @media (max-width: 480px) {
+            .auth-card { padding: 2.5rem 1.5rem; }
+            .home-link { top: 1rem; left: 1rem; }
         }
-        .forgot-link a {
-            color: #5b728e;
-            font-size: 0.9rem;
-            text-decoration: none;
-        }
-        .forgot-link a:hover {
-            color: #2563eb;
-        }
+
+        /* TOAST SYSTEM */
+        .toast-container { position: fixed; top: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 1rem; pointer-events: none; }
+        .toast { pointer-events: auto; width: 320px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); transform: translateX(120%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; border-left: 4px solid var(--primary); }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .toast-content { flex: 1; min-width: 0; }
+        .toast-title { font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 2px; font-family: 'Outfit', sans-serif; }
+        .toast-message { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
+        .toast-success { border-left-color: #10b981; }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .toast-warning { border-left-color: #f59e0b; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
     </style>
 </head>
 <body>
 
-    <!-- top corner home icon -->
-    <div class="home-corner">
-        <a href="/" title="Back to Home"><i class="fas fa-home"></i></a>
-    </div>
+    <a href="/" class="home-link">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
 
-    <!-- main login card -->
-    <div class="login-card" id="loginCard">
-        <div class="login-header">
-            <h2>Welcome back</h2>
-            <p>Log in to your MalwareLab account</p>
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">
+                <i class="fas fa-shield-virus"></i> Malware<span>Lab</span>
+            </div>
+            <h2>Welcome Back</h2>
+            <p>Access your security dashboard</p>
         </div>
 
-        <!-- INLINE ERROR: visible only if error_msg passed from Flask -->
-        {% if error_msg %}
-        <div class="error-message" id="errorBox" style="display: flex;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="errorText">{{ error_msg }}</span>
-        </div>
-        {% else %}
-        <div class="error-message" id="errorBox" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="errorText"></span>
-        </div>
-        {% endif %}
+        <!-- Messages handled by Toast -->
 
-        <!-- login form - submits to same route -->
-        <form method="POST" action="/login" id="loginForm">
-            <!-- CSRF token would go here if using Flask-WTF – you can add if needed -->
+        <form method="POST" action="/login">
             <div class="input-group">
-                <label for="email">Email address</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" value="{{ request.form.email or '' }}" required>
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="name@company.com" required>
+                </div>
             </div>
 
             <div class="input-group">
                 <label for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                    <span class="toggle-pw" onclick="togglePassword()">
-                        <i class="far fa-eye" id="toggleIcon"></i>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <span class="password-toggle" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
                     </span>
                 </div>
             </div>
 
-            <!-- <div class="forgot-link">
-                <a href="#">Forgot password?</a>
-            </div> -->
-
-            <button type="submit" class="btn-login"><i class="fas fa-lock" style="margin-right: 0.5rem;"></i> Log in</button>
-
-            <div class="register-link">
-                Don't have an account? <a href="/register">Register now</a>
-            </div>
+            <button type="submit" class="btn-submit">Sign In</button>
         </form>
 
-    </div>
-
-    <!-- SUCCESS POPUP (hidden initially, shown via JavaScript after redirect simulation – but actual redirect happens server-side, so we don't show popup normally. However we keep for AJAX fallback if you'd like; but for standard flow you'll be redirected. 
-    We'll keep it but note: real redirect makes popup unnecessary. We'll use it only for demo if we want to simulate client side; but we adapt to real flow: after successful login, server redirects to dashboard, no popup needed. 
-    For better UX you could use flash messages. 
-    I'll keep the popup hidden and not used in normal flow, but present in case you later want AJAX. -->
-    <div class="popup-overlay" id="successPopup">
-        <div class="popup-card">
-            <i class="fas fa-check-circle"></i>
-            <h3>Success!</h3>
-            <p>You have logged in successfully.<br>Redirecting to dashboard ...</p>
-            <button class="popup-btn" id="gotoDashboardBtn"><i class="fas fa-arrow-right"></i> Go to Dashboard</button>
+        <div class="auth-footer">
+            Don't have an account? <a href="/register">Create one for free</a>
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        // Toggle password visibility
         function togglePassword() {
             const pwInput = document.getElementById('password');
             const icon = document.getElementById('toggleIcon');
             if (pwInput.type === 'password') {
                 pwInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
                 pwInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
 
-        // (Optional) If you ever want to show popup on successful AJAX login, you can.
-        // But with server-side redirect we don't need it. 
-        // However we keep the popup for possible future enhancement.
-
-        // For demo purposes, you can uncomment to handle if you switch to fetch.
-        // But in this version, we rely on Flask redirect.
-
-        // The error is already handled by Flask via error_msg variable.
-        // No need for client-side validation for empty fields (they are required by HTML5 anyway).
-
-        // Close popup if clicked outside (not used normally)
-        const popupOverlay = document.getElementById('successPopup');
-        popupOverlay.addEventListener('click', function(e) {
-            if (e.target === popupOverlay) {
-                popupOverlay.style.display = 'none';
-            }
+        window.addEventListener('DOMContentLoaded', () => {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        toastManager.show("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         });
-
-        // optional: if you ever want to manually trigger popup after a hidden redirect, you can.
-        // But in standard flow, the browser will follow the redirect to dashboard.
     </script>
-
-    <!-- note: home icon links to index route, register link to register route -->
 </body>
 </html>
