@@ -34,6 +34,7 @@ graph TD
         LogicController <-->|BSON Logs| HistoryDB[(Forensic Audit Logs)]:::db
     end
 ```
+**Architecture Explained:** This blueprint shows how all the pieces of MalwareLab fit together. Think of it like a restaurant: the Client Browser is the customer ordering from the menu, the WebServer is the waiter taking the order, the LogicController is the kitchen manager, and the Databases are the pantry where ingredients are stored. The Analysis Engine and AI Core act as the chefs who prepare the final dish (the security report). By separating these roles, the system remains fast, stable, and highly secure.
 
 ### 2.2 Security Boundary & Trust Zones
 ```mermaid
@@ -53,9 +54,9 @@ flowchart LR
     end
     
     subgraph High_Security_Zone
-        Vault[.env Secrets]
-        AI[Model Binaries .pkl]
-        Atlas[(MongoDB Atlas Encrypted)]
+        Vault[".env Secrets"]
+        AI["Model Binaries .pkl"]
+        Atlas["MongoDB Atlas Encrypted"]
     end
 
     Internet --> Firewall --> LoadBalancer --> App
@@ -64,6 +65,7 @@ flowchart LR
     App <--> AI
     App <--> Atlas
 ```
+**Security Zones Explained:** Security is about building walls. This diagram illustrates the layers of defense protecting our core system. The public internet is untrusted, so requests first pass through a firewall (the DMZ). Once inside, the Flask application sanitizes the incoming data before it's allowed anywhere near the "High Security Zone." This inner vault acts as an impenetrable fortress holding our cryptographic keys, user database records, and the sensitive AI brain.
 
 ---
 
@@ -107,10 +109,9 @@ stateDiagram-v2
     History --> Dashboard
     ApplicationCore --> [*] : Logout Action
 ```
+**User Journey Explained:** This is the master roadmap of the user experience. It maps out every single screen you can visit and exactly how they connect. From the moment you land on the homepage, you are guided through a secure registration or login process. Once authenticated, the dashboard opens up, allowing you to branch off into uploading datasets, analyzing suspicious APK files, or reviewing your past history, before safely terminating your session.
 
 ### 3.2 The Registration Sequence
-Security begins at user creation. Passwords are never stored in plaintext; they undergo immediate cryptographic hashing.
-
 ```mermaid
 sequenceDiagram
     actor NewUser
@@ -136,6 +137,7 @@ sequenceDiagram
         Flask-->>UI: Redirect to Login
     end
 ```
+**Registration Explained:** When a new user signs up, we guarantee that we never store their password directly. This sequence shows how the system takes your plaintext password and passes it through a heavy cryptographic mixer called 'Bcrypt'. It turns your password into an unrecognizable, salted string of characters (a hash) before saving it to the database, ensuring that even in the worst-case scenario of a database breach, your actual password remains completely safe.
 
 ### 3.3 The Login & Session Management Sequence
 ```mermaid
@@ -163,6 +165,7 @@ sequenceDiagram
         Flask-->>UI: 302 Redirect to /dashboard
     end
 ```
+**Login Flow Explained:** Logging in isn't just about checking a password; it's about establishing trust. When you enter your credentials, the system compares the mathematical hash of what you typed against what is stored. If they match perfectly, the server hands your browser a "Secure Session Cookie"—a digital, cryptographically signed ID badge that lets you move freely around the secure dashboard without needing to log in again for every single click.
 
 ---
 
@@ -180,22 +183,21 @@ graph TD
     ActionPanels --> ModelCard[Dataset Retraining Module]
     ActionPanels --> ScanCard[APK Forensic Scan Module]
     
-    ModelCard --> Form1[Hidden File Form .csv]
+    ModelCard --> Form1["Hidden File Form (.csv)"]
     ModelCard --> JS1[handleFile Validation]
     
-    ScanCard --> Form2[Hidden File Form .apk]
+    ScanCard --> Form2["Hidden File Form (.apk)"]
     ScanCard --> JS2[handleFile Validation]
 ```
+**Dashboard Anatomy Explained:** The Dashboard is your centralized command center. This diagram breaks down its anatomy into logical pieces. On the left, the sidebar helps you navigate, while the top bar displays global metrics. The center stage is split into two primary action panels: one dedicated to training the AI with new datasets, and one for uploading and analyzing suspicious APK files. Each panel features hidden layers of validation to protect the server from bad inputs.
 
 ### 4.2 Client-Side File Validation Pipeline
-Before a byte of data hits the server, the frontend validates the intent.
-
 ```mermaid
 flowchart TD
     UserAction[User Selects File] --> Hook[onChange Event Triggered]
     Hook --> ExtCheck{Check File Extension}
     
-    ExtCheck -- ".csv for Dataset" --> SizeCheck[Verify Size < Limit]
+    ExtCheck -- ".csv for Dataset" --> SizeCheck[Verify Size Limits]
     ExtCheck -- ".apk for Scan" --> SizeCheck
     ExtCheck -- "Invalid Format" --> Reject[Clear Input]
     
@@ -203,6 +205,7 @@ flowchart TD
     SizeCheck --> EnableBtn[Unlock Submit Action]
     EnableBtn --> Display[Show Filename UI]
 ```
+**Validation Pipeline Explained:** Before you even click upload, the system is already working to protect the server. This flow shows how your web browser acts as a bouncer at the door. If you accidentally try to upload a music file or an image instead of an APK or CSV, the JavaScript instantly blocks it and shows a helpful toast error message. This saves time, conserves bandwidth, and ensures the backend remains focused entirely on legitimate security analysis.
 
 ---
 
@@ -232,11 +235,12 @@ sequenceDiagram
     Dash->>Dash: Delete temp local file
     Dash-->>Admin: Render dataset_results.html
 ```
+**Training Workflow Explained:** Teaching an AI requires careful steps and data hygiene. When you upload a new dataset, it is securely streamed directly into the database. The system then takes a temporary working copy, scrubs the data, and runs it through four complex machine learning algorithms. It figures out which algorithm is the smartest, saves that "brain" for future scans, records the accuracy in the history logs, and finally presents you with a success report.
 
 ### 5.2 Feature Engineering & Model Training Detail
 ```mermaid
 flowchart TD
-    RawCSV[(Raw Dataset CSV)] --> Pandas[Dataframe Load]
+    RawCSV[("Raw Dataset CSV")] --> Pandas[Dataframe Load]
     Pandas --> Drop[Drop Non-Predictive Columns]
     Drop --> Split[Train/Test Split 80/20]
     
@@ -251,8 +255,9 @@ flowchart TD
     NN --> Eval4[Calculate Accuracy & F1]
     
     Eval1 & Eval2 & Eval3 & Eval4 --> Metrics[Compile Metrics Array]
-    Metrics --> Serialization[joblib.dump Models]
+    Metrics --> Serialization["joblib.dump Models (.pkl)"]
 ```
+**Model Training Explained:** This is how raw data is transformed into Artificial Intelligence. The system takes a massive spreadsheet of known malware characteristics, removes any useless information, and splits the data into a "study guide" (training) and a "final exam" (testing). It trains four different mathematical models using the study guide, tests them on the exam to gauge their accuracy, and saves the most capable models to disk so they are ready to protect the system.
 
 ---
 
@@ -284,13 +289,12 @@ flowchart TB
     AI_Core & Risk_Engine --> Synthesis[Final Report Generation]
     Synthesis --> Cleanup[Wipe Temp Data]
 ```
+**Analysis Pipeline Explained:** This is the absolute heart of MalwareLab. When a suspicious app is uploaded, we don't install it; we take it apart like a forensic mechanic inspecting an engine. The Static Engine reads the code, extracts the permissions and hidden strings, and passes them to two different judges: the AI Engine (which looks for complex, hidden patterns) and the Heuristic Risk Engine (which looks for obvious red flags). They combine their findings into one master report.
 
 ### 6.2 Permission Extraction & Categorization Logic
-The system intelligently separates requested permissions into standard requirements and high-risk vectors.
-
 ```mermaid
 graph TD
-    RawPerms[Extracted Android Permissions] --> Filter[Clean 'android.permission.' Prefix]
+    RawPerms[Extracted Android Permissions] --> Filter["Clean 'android.permission.' Prefix"]
     Filter --> Iterator[Iterate through list]
     
     Iterator --> Condition{Is in Danger List?}
@@ -301,34 +305,32 @@ graph TD
     DangerBucket --> RiskCalc[Add +Weight to Score]
     NormalBucket --> SafeLog[Log for Audit]
 ```
+**Permission Categorization Explained:** Every Android application asks for permissions (like accessing your camera or your text messages). This system automatically filters out the boring, standard permissions and shines a harsh spotlight on the dangerous ones. It separates them into two distinct buckets: "High-Risk Red Flags" that count heavily against the app's safety score, and "Standard Access" which is simply logged for your peace of mind and transparency.
 
 ### 6.3 The Heuristic Risk Scoring Algorithm
-While AI handles non-linear patterns, the heuristic engine looks for definitive red flags to establish a base risk score.
-
 ```mermaid
 flowchart LR
-    Start[Base Score: 0] --> PermCheck{Dangerous Perms?}
-    PermCheck -- Yes --> AddPerm[Score + Weighted Values]
-    PermCheck -- No --> StrCheck
+    Start["Base Score: 0"] --> PermCheck{"Dangerous Perms?"}
+    PermCheck -- Yes --> AddPerm["Score + Weighted Values"]
+    PermCheck -- No --> StrCheck{"Suspicious Strings?"}
     
-    AddPerm --> StrCheck{Suspicious Strings?}
-    StrCheck -- Yes --> AddStr[Score + (Hits * 0.6)]
-    StrCheck -- No --> IntentCheck
+    AddPerm --> StrCheck
+    StrCheck -- Yes --> AddStr["Score + (Hits * 0.6)"]
+    StrCheck -- No --> IntentCheck{"Boot/SMS Intents?"}
     
-    AddStr --> IntentCheck{Boot/SMS Intents?}
-    IntentCheck -- Yes --> AddIntent[Score + 3.0 per trigger]
-    IntentCheck -- No --> ObfCheck
+    AddStr --> IntentCheck
+    IntentCheck -- Yes --> AddIntent["Score + 3.0 per trigger"]
+    IntentCheck -- No --> ObfCheck{"Short Class Names?"}
     
-    AddIntent --> ObfCheck{Short Class Names?}
-    ObfCheck -- Yes --> AddObf[Score + 3.0]
-    ObfCheck -- No --> Output
+    AddIntent --> ObfCheck
+    ObfCheck -- Yes --> AddObf["Score + 3.0"]
+    ObfCheck -- No --> Output["Final Base Risk Score"]
     
-    AddObf --> Output[Final Base Risk Score]
+    AddObf --> Output
 ```
+**Risk Scoring Explained:** Think of this as a strict, unforgiving security checklist. The system starts with a perfect score of zero. As it scans the app, it adds penalty points for every shady thing it uncovers. Asking for dangerous permissions adds points. Containing hidden hacker strings adds points. Trying to hide its code (obfuscation) adds points. The higher the final combined score, the closer the application gets to an 'F' security grade.
 
 ### 6.4 The Neural Ensemble Inference Protocol
-A single model can be fooled. MalwareLab forces the data through four separate mathematical spaces to reach a consensus.
-
 ```mermaid
 graph TD
     Vector[Extracted Feature DataFrame] --> Model_1[Random Forest]
@@ -345,6 +347,7 @@ graph TD
     Arbiter --> Malware[Decision: MALWARE]
     Arbiter --> Benign[Decision: BENIGN]
 ```
+**Ensemble Inference Explained:** Why trust one AI when you can rely on the consensus of four? This diagram shows our advanced "Ensemble" approach. The extracted data is fed into four separate artificial brains simultaneously. Each brain analyzes the app independently and casts a vote. An automated arbiter looks at all the votes and their respective confidence levels to make a final, highly accurate, and mathematically sound decision on whether the app is safe or malicious.
 
 ---
 
@@ -369,10 +372,9 @@ sequenceDiagram
     Browser->>Browser: Parse injected JSON for charts
     ChartJS->>Browser: Render Radar, Doughnut, Polar graphs
 ```
+**Rendering Flow Explained:** Translating raw backend mathematics into a beautiful dashboard is a multi-step process. Once the server finishes analyzing the app, it creates a massive dictionary of intelligence data. This data is injected directly into the HTML code by the server. Finally, your web browser reads this data and uses JavaScript to draw the interactive charts and graphs, turning complex numbers into intuitive, easy-to-understand visual insights.
 
 ### 7.2 UI/UX Responsive State Machine (Print vs Screen)
-The report is designed to transform seamlessly into an official physical document via a Virtual Backend PDF process.
-
 ```mermaid
 stateDiagram-v2
     [*] --> ScreenMode (Dark Theme)
@@ -391,6 +393,7 @@ stateDiagram-v2
     
     PrintMode --> ScreenMode : Print Dialog Closed
 ```
+**Print Optimization Explained:** Our forensic reports are designed to live beautifully on both digital screens and physical paper. This diagram explains how the interface instantly adapts to its environment. If you click "Download PDF," the system acts as a virtual backend: it hides all the web buttons, switches to a high-contrast white background, and precisely resizes the charts so they fit perfectly on a printed A4 page without ever getting awkwardly cut in half.
 
 ---
 
@@ -415,6 +418,7 @@ flowchart TD
     ClientJS --> View1[Show Scan Audit Table]
     ClientJS --> View2[Show Training Model Metrics]
 ```
+**History Logic Explained:** The History page acts as an immutable, permanent ledger of everything you have ever done on the platform. When you visit it, the system checks your session ID and then queries the database for two completely distinct lists: your past APK scans and your past AI training runs. It formats the dates and passes them to the web page, where client-side JavaScript neatly organizes them into two clickable, interactive tabs.
 
 ### 8.2 Database Schema Architecture (ERD)
 ```mermaid
@@ -460,26 +464,24 @@ erDiagram
     SCAN_HISTORY ||--o| FS_FILES : references
     TRAINING_HISTORY ||--o| FS_FILES : references
 ```
+**Database ERD Explained:** This is the foundational blueprint of our data vault. It explicitly shows how pieces of information are logically linked together. Every User acts as a central hub. A user can perform many "Scan Histories" or "Training Histories." In turn, those textual history logs are permanently tied to the actual, physical files stored securely in the GridFS "FS_FILES" collection, ensuring total data integrity and preventing orphaned records.
 
 ---
 
 ## 9. Foundational Components & Infrastructure
 
 ### 9.1 Environment & Secrets Management
-The platform utilizes a secure `.env` isolation strategy to ensure zero secret leakage into version control.
-
 ```mermaid
 graph LR
-    EnvFile[.env (Ignored by Git)] --> ConfigLoad[dotenv.load_dotenv]
+    EnvFile[".env (Ignored by Git)"] --> ConfigLoad["dotenv.load_dotenv()"]
     ConfigLoad --> AppMem[Application Memory]
     
-    AppMem --> Key1[FLASK_SECRET_KEY: Session Crypto]
-    AppMem --> Key2[MONGODB_URI: Atlas Connection]
+    AppMem --> Key1["FLASK_SECRET_KEY: Session Crypto"]
+    AppMem --> Key2["MONGODB_URI: Atlas Connection"]
 ```
+**Secrets Management Explained:** Top-tier security requires keeping secrets an absolute secret. This workflow demonstrates how the application manages critical passwords and database connection strings. Instead of dangerously writing passwords directly into the code, we hide them in an invisible `.env` file. When the server starts up, it quietly loads these secrets directly into the computer's temporary memory, ensuring hackers can never find them in the public source code repository.
 
 ### 9.2 The Toast Notification Engine
-A vanilla JavaScript orchestration system that replaces intrusive alerts with smooth, non-blocking feedback.
-
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
@@ -493,6 +495,7 @@ stateDiagram-v2
     AnimateOut --> RemoveDOM : Garbage Collection
     RemoveDOM --> Idle
 ```
+**Toast Engine Explained:** "Toasts" are those smooth, modern pop-up messages you see when you do something correctly (or incorrectly). This logic flow shows how the system dynamically creates a temporary box, colors it red or green, slides it onto the screen using CSS animations, waits exactly three seconds, and then gracefully slides it off before permanently deleting it. This provides a clean way to communicate without relying on annoying, outdated alert boxes.
 
 ---
 
@@ -544,6 +547,5 @@ Before running your first APK scan, the system requires a baseline intelligence 
 
 ---
 
-## 11. Concluding Architectural Statement
-
-MalwareLab represents the intersection of robust web engineering, applied cryptography, and advanced data science. By bridging the gap between raw binary analysis and human-readable interfaces, it establishes a powerful standard for educational cybersecurity platforms and lightweight enterprise forensic tools. The modularity of its design guarantees that as threat vectors evolve, the underlying neural ensemble can be seamlessly retrained and expanded without disrupting the operational pipeline.
+> *"The only truly secure system is one that is powered off, cast in a block of concrete and sealed in a lead-lined room with armed guards. For everything else, there is Explainable Artificial Intelligence."* 
+> — A modern security axiom for the predictive era.
